@@ -20,18 +20,22 @@ func main() {
 	app.Init(&map[string]router.TRoutesList{
 		http.MethodGet: {
 			"health-check": {
-				Name: "Health Check",
+				Name:    "Health Check",
 				Handler: handlers.HealthCheck,
 			},
 			"token": {
-				Name: "Get token",
+				Name:    "Get token",
 				Handler: handlers.GetToken,
 			},
 			"articles": {
 				Name:        "List articles",
 				Handler:     handlers.GetArticles,
 				Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
-
+			},
+			"article": {
+				Name:        "Get specific article",
+				Handler:     handlers.GetArticle,
+				Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
 			},
 		},
 	})

@@ -1,9 +1,7 @@
 package router
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
 type TAppRouter struct {
@@ -13,9 +11,9 @@ type TAppRouter struct {
 type TRoutesList *map[string]TRouteDescription
 
 type TRouteDescription struct {
-	Name string
-	Method string
-	Handler gin.HandlerFunc
+	Name        string
+	Method      string
+	Handler     gin.HandlerFunc
 	Group       string
 	Middlewares []gin.HandlerFunc
 }
@@ -34,7 +32,6 @@ func (appRouter *TAppRouter) Configure() {
 func (appRouter *TAppRouter) InitRoutes(routes *map[string]TRoutesList) {
 	var handle gin.IRoutes
 	for method, routeList := range *routes {
-		fmt.Println(method)
 		for path, routeDescription := range *routeList {
 			if routeDescription.Group != "" {
 				handle = appRouter.engine.Group(routeDescription.Group)
@@ -42,7 +39,6 @@ func (appRouter *TAppRouter) InitRoutes(routes *map[string]TRoutesList) {
 				handle = appRouter.engine
 			}
 			if len(routeDescription.Middlewares) > 0 {
-				log.Println(routeDescription.Middlewares)
 				handle.Use(routeDescription.Middlewares...)
 			}
 			handle.Handle(method, path, routeDescription.Handler)

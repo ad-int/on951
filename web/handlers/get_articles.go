@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"main/database"
 	"main/models"
+	"main/web"
 	"net/http"
 	"strconv"
 )
@@ -12,7 +13,7 @@ func GetArticles(ctx *gin.Context) {
 
 	db := database.GetDB()
 	// Read
-	var articles []models.Article
+	var articles []models.ArticleBriefInfo
 
 	paramPageNo := ctx.DefaultQuery("page", "1")
 	paramPageSize := ctx.DefaultQuery("page_size", "20")
@@ -26,11 +27,7 @@ func GetArticles(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	db.Offset((PageNo - 1) * pageSize)
-	db.Limit(pageSize)
-	db.Find(&articles)
+	db.Table(models.TableArticles).Offset((PageNo - 1) * pageSize).Limit(pageSize).Find(&articles)
+	web.Write(ctx, http.StatusAccepted, articles)
 
-
-
-	ctx.JSON(http.StatusAccepted, articles)
 }

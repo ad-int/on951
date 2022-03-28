@@ -49,6 +49,7 @@ func GetToken(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, err)
 	}
 
-	ctx.JSON(http.StatusOK, string(jwtBytes))
+	ctx.Status(http.StatusOK)
+	ctx.Writer.Write(jwtBytes)
 
 }

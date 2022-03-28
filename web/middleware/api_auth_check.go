@@ -17,7 +17,6 @@ const MsgUnauthorized = "unauthorized"
 const MsgNotAcceptedAudience = "not accepted audience"
 const MsgInvalidIssuer = "invalid issuer"
 
-
 func EnableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Allow-Access-Origin", "*")
@@ -69,6 +68,8 @@ func ApiAuthCheck(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusUnauthorized, err)
 		return
 	}
-	log.Println(user)
+	if gin.Mode() == gin.DebugMode {
+		log.Printf("Logged user: #%v %v", user.Id, user.Name)
+	}
 	ctx.Next()
 }
