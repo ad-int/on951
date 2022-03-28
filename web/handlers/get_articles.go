@@ -12,7 +12,6 @@ import (
 func GetArticles(ctx *gin.Context) {
 
 	db := database.GetDB()
-	// Read
 	var articles []models.ArticleBriefInfo
 
 	paramPageNo := ctx.DefaultQuery("page", "1")

@@ -12,7 +12,6 @@ import (
 func GetArticle(ctx *gin.Context) {
 
 	db := database.GetDB()
-	// Read
 	var article models.Article
 
 	if ctx.Query("id") == "" {
