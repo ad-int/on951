@@ -1,5 +1,6 @@
 package models
+
 type Response struct {
-	Code uint `json:"code"`
+	Code int    `json:"code"`
 	Body string `json:"body"`
 }

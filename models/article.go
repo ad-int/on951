@@ -2,13 +2,20 @@ package models
 
 const TableArticles = "articles"
 
+type ArticleBriefInfo struct {
+	Id    uint `gorm:"primaryKey"`
+	Title string
+}
+
 type Article struct {
-	Id          uint64
+	Id          uint `gorm:"primaryKey"`
 	Title       string
 	Description string
 }
 
-type ArticleBriefInfo struct {
-	Id    uint64
-	Title string
+type ArticleWithComments struct {
+	Id          uint `gorm:"primaryKey"`
+	Title       string
+	Description string
+	Comments    []Comment `gorm:"foreignKey:ArticleId;references:Id"`
 }

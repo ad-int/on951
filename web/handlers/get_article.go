@@ -6,7 +6,7 @@ import (
 	"main/models"
 	"main/web"
 	"net/http"
-	"strconv"
+	"strings"
 )
 
 func GetArticle(ctx *gin.Context) {
@@ -14,14 +14,9 @@ func GetArticle(ctx *gin.Context) {
 	db := database.GetDB()
 	var article models.Article
 
-	if ctx.Query("id") == "" {
-		web.WriteError(ctx, http.StatusBadRequest, "Specify article ID")
-		return
-	}
-
-	articleId, err := strconv.Atoi(ctx.Query("id"))
-	if articleId < 1 || err != nil {
-		web.WriteError(ctx, http.StatusBadRequest, "Invalid article ID")
+	articleId := strings.TrimSpace(ctx.Query("article_id"))
+	if articleId == "" {
+		web.WriteBadRequestError(ctx, "Specify article ID")
 		return
 	}
 

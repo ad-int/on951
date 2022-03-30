@@ -13,10 +13,16 @@ import (
 func main() {
 
 	app := state.GetApplication()
-
 	database.ConnectToDB()
 	database.AutoMigrate()
-	handlers.Generate()
+	for t := 0; t < 20; t++ { // Generating random articles
+		handlers.Generate()
+	}
+
+	//ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	//ctx.Set("article_id1", 1)
+	//handlers.GetComments(ctx)
+	//return
 	app.Init(&map[string]router.TRoutesList{
 		http.MethodGet: {
 			"health-check": {
@@ -32,9 +38,21 @@ func main() {
 				Handler:     handlers.GetArticles,
 				Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
 			},
+			"comments": {
+				Name:        "List comments",
+				Handler:     handlers.GetComments,
+				Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
+			},
 			"article": {
 				Name:        "Get specific article",
 				Handler:     handlers.GetArticle,
+				Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
+			},
+		},
+		http.MethodPut: {
+			"comment": {
+				Name:        "Post a comment",
+				Handler:     handlers.PutComment,
 				Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
 			},
 		},
