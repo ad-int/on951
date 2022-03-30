@@ -7,15 +7,15 @@ type ArticleBriefInfo struct {
 	Title string
 }
 
-type Article struct {
-	Id          uint `gorm:"primaryKey"`
-	Title       string
-	Description string
-}
-
 type ArticleWithComments struct {
 	Id          uint `gorm:"primaryKey"`
 	Title       string
 	Description string
 	Comments    []Comment `gorm:"foreignKey:ArticleId;references:Id"`
+}
+
+type Article struct {
+	Id          uint `gorm:"primaryKey"`
+	Title       string
+	Description string
 }
