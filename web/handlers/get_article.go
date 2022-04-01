@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"main/database"
-	"main/models"
+	dbStructure "main/database/structure"
 	"main/web"
 	"net/http"
 	"strings"
@@ -12,7 +12,7 @@ import (
 func GetArticle(ctx *gin.Context) {
 
 	db := database.GetDB()
-	var article models.Article
+	var article dbStructure.Article
 
 	articleId := strings.TrimSpace(ctx.Query("article_id"))
 	if articleId == "" {

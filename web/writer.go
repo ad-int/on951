@@ -25,14 +25,16 @@ func WriteBadRequestError(ctx *gin.Context, message string, prevError ...error) 
 	}
 	writeNewLine(ctx)
 }
-
-func WriteSuccessMessage(ctx *gin.Context, message string) {
-	ctx.IndentedJSON(http.StatusOK, &models.Response{
-		Code: http.StatusOK,
+func WriteMessage(ctx *gin.Context, code int, message string) {
+	ctx.IndentedJSON(code, &models.Response{
+		Code: code,
 		Body: message,
 	})
 	log.Println(message)
 	writeNewLine(ctx)
+}
+func WriteSuccessMessage(ctx *gin.Context, message string) {
+	WriteMessage(ctx, http.StatusOK, message)
 }
 func WriteSuccessfullyCreatedMessage(ctx *gin.Context, message string) {
 	ctx.IndentedJSON(http.StatusCreated, &models.Response{

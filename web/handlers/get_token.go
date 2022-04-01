@@ -5,7 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pascaldekloe/jwt"
 	"golang.org/x/crypto/bcrypt"
-	"main/models"
+	"log"
+	dbStructure "main/database/structure"
 	"main/state"
 	"net/http"
 	"time"
@@ -24,7 +25,7 @@ func GetToken(ctx *gin.Context) {
 		return
 	}
 
-	userRecord, err := json.Marshal(models.User{
+	userRecord, err := json.Marshal(dbStructure.User{
 		Id:       1,
 		Name:     user,
 		Password: string(hash),
@@ -50,6 +51,9 @@ func GetToken(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusOK)
-	ctx.Writer.Write(jwtBytes)
+	_, e := ctx.Writer.Write(jwtBytes)
+	if e != nil {
+		log.Println(e)
+	}
 
 }

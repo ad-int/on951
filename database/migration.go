@@ -1,9 +1,13 @@
 package database
 
 import (
-	"main/models"
+	"log"
+	dbStructure "main/database/structure"
 )
 
 func AutoMigrate() {
-	db.AutoMigrate(&models.User{}, &models.Article{}, &models.Comment{})
+	err := db.AutoMigrate(&dbStructure.User{}, &dbStructure.Article{}, &dbStructure.Comment{})
+	if err != nil {
+		log.Fatalf("Error occurred during DB migration %v\n", err)
+	}
 }

@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"main/database"
-	"main/models"
+	dbStructure "main/database/structure"
 	"main/web"
 	"net/http"
 	"strconv"
@@ -14,7 +14,7 @@ import (
 func GetComments(ctx *gin.Context) {
 
 	db := database.GetDB()
-	var article models.ArticleWithComments
+	var article dbStructure.ArticleWithComments
 	articleId := strings.TrimSpace(ctx.Query("article_id"))
 	if articleId == "" {
 		web.WriteBadRequestError(ctx, "Specify article ID")
@@ -38,13 +38,12 @@ func GetComments(ctx *gin.Context) {
 		web.Write(ctx, http.StatusOK, err)
 		return
 	}
-
 	tx := db.Debug().
-		Table(models.TableArticles).
-		Joins("Comments").
+		Table(dbStructure.TableArticles).
+		Preload("Comments").
 		First(&article, articleId)
 	if tx.RowsAffected < 1 {
-		web.Write(ctx, http.StatusOK, []string{})
+		web.WriteMessage(ctx, http.StatusNotFound, "Empty :(")
 		return
 	}
 	web.Write(ctx, http.StatusAccepted, article)

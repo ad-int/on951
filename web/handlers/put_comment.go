@@ -4,8 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"main/database"
+	dbStructure "main/database/structure"
 	"main/image_links_parser"
 	"main/models"
+	"main/state"
 	"main/web"
 	"net/http"
 	"strconv"
@@ -15,11 +17,11 @@ import (
 func PutComment(ctx *gin.Context) {
 
 	db := database.GetDB()
-	var comment models.Comment
+	var comment dbStructure.Comment
 	articleId, err := strconv.Atoi(strings.TrimSpace(ctx.Query("article_id")))
 
 	if err != nil {
-		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		web.WriteBadRequestError(ctx, "Article ID is missing", err)
 		return
 	}
 
@@ -29,16 +31,22 @@ func PutComment(ctx *gin.Context) {
 		return
 	}
 	commentBodyStr := string(commentBody)
-	var areLmageLinksProcessed bool
-	commentBodyStr, areLmageLinksProcessed = image_links_parser.Process(commentBodyStr)
-	if !areLmageLinksProcessed {
+	var areImageLinksProcessed bool
+	commentBodyStr, areImageLinksProcessed = image_links_parser.Process(commentBodyStr)
+	if !areImageLinksProcessed {
 		web.Write(ctx, http.StatusInsufficientStorage, models.Response{
 			Code: http.StatusInsufficientStorage,
 			Body: "Unable to process images in the comment",
 		})
 		return
 	}
+	authorizedUser, err := state.GetAuthorizedUserFromHeader(ctx.GetHeader("Authorization"))
+	if err != nil {
+		web.WriteMessage(ctx, http.StatusForbidden, "No logged user!")
+		return
+	}
 
+	comment.UserId = authorizedUser.Id
 	comment.ArticleId = uint(articleId)
 	comment.Content = commentBodyStr
 	tx := db.Create(&comment)
