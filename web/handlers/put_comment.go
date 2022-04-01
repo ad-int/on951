@@ -16,6 +16,12 @@ import (
 
 func PutComment(ctx *gin.Context) {
 
+	authorizedUser, err := state.GetAuthorizedUserFromHeader(ctx.GetHeader("Authorization"))
+	if err != nil {
+		web.WriteMessage(ctx, http.StatusForbidden, "No logged user!")
+		return
+	}
+
 	db := database.GetDB()
 	var comment dbStructure.Comment
 	articleId, err := strconv.Atoi(strings.TrimSpace(ctx.Query("article_id")))
@@ -38,11 +44,6 @@ func PutComment(ctx *gin.Context) {
 			Code: http.StatusInsufficientStorage,
 			Body: "Unable to process images in the comment",
 		})
-		return
-	}
-	authorizedUser, err := state.GetAuthorizedUserFromHeader(ctx.GetHeader("Authorization"))
-	if err != nil {
-		web.WriteMessage(ctx, http.StatusForbidden, "No logged user!")
 		return
 	}
 
