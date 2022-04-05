@@ -8,6 +8,8 @@ import (
 	"log"
 	dbStructure "main/database/structure"
 	"main/router"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -17,6 +19,8 @@ const MsgNotAcceptedAudience = "not accepted audience"
 const MsgNoAuthorizationToken = "missing authorization token"
 const MsgInvalidAuthorizationToken = "invalid authorization token"
 const MsgInvalidIssuer = "invalid issuer"
+
+const ImagesDirectory = "images"
 
 var application *TApplication
 
@@ -45,8 +49,6 @@ func (app *TApplication) Init(routes *map[string]router.TRoutesList) {
 		log.Println(err)
 		log.Fatalln("Unable to read .env file!")
 	}
-
-	log.Println(app.config)
 
 	app.router.Configure()
 	app.router.InitRoutes(routes)
@@ -86,4 +88,22 @@ func GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error) {
 	err = json.Unmarshal([]byte(claim.Subject), &user)
 
 	return user, err
+}
+
+func GetImagesDir() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
+	iDir := filepath.Join(dir, ImagesDirectory)
+	fi, err := os.Stat(iDir)
+	if  err != nil {
+		log.Println(err)
+		return ""
+	}
+	if !fi.IsDir() {
+		return ""
+	}
+	return iDir
 }

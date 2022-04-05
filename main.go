@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"main/database"
 	"main/router"
 	"main/state"
@@ -19,6 +20,10 @@ func main() {
 		handlers.Generate()
 	}
 
+	if len(state.GetImagesDir()) < 1 {
+		log.Fatalln("Cannot read images directory path")
+	}
+	log.Println(state.GetImagesDir())
 	//ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 	//ctx.Set("article_id1", 1)
 	//handlers.GetComments(ctx)
