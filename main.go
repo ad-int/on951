@@ -14,7 +14,8 @@ import (
 func main() {
 
 	app := state.GetApplication()
-	database.ConnectToDB()
+	app.ReadEnvFile()
+	database.ConnectToDB(state.GetApplication().GetConfigValue("DSN"))
 	database.AutoMigrate()
 	for t := 0; t < 20; t++ { // Generating random articles
 		handlers.Generate()

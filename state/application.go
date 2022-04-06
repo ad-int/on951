@@ -41,14 +41,16 @@ func (app *TApplication) GetConfigValue(key string) string {
 	return app.config[key]
 }
 
-func (app *TApplication) Init(routes *map[string]router.TRoutesList) {
-
+func (app *TApplication) ReadEnvFile() {
 	var err error
 	app.config, err = godotenv.Read(".env")
 	if err != nil {
 		log.Println(err)
 		log.Fatalln("Unable to read .env file!")
 	}
+}
+
+func (app *TApplication) Init(routes *map[string]router.TRoutesList) {
 
 	app.router.Configure()
 	app.router.InitRoutes(routes)
