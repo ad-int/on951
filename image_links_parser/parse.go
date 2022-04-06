@@ -26,7 +26,7 @@ func getImageFileName(mimeType string, encoding string, encodedImage string) (st
 }
 
 func grabAllValidImages(text string) map[string]string {
-	imgTagRegexp, err := regexp.Compile(`<img src="data:([\w\/]+);(.+),(.+)".*>`)
+	imgTagRegexp, err := regexp.Compile(`<img src="data:([\w/]+);(.+),(.+)".*>`)
 	var foundImages = make(map[string]string)
 	var index uint = 0
 	if err != nil {
@@ -52,6 +52,10 @@ func validateImage(mimeType string, encoding string, encodedImage string) (bool,
 	parsedMimeType, _, err := mime.ParseMediaType(mimeType)
 	if err != nil || parsedMimeType != mimeType {
 		log.Printf("Unrecognized mime type %v\n", mimeType)
+		return false, ""
+	}
+	if !strings.Contains(parsedMimeType, "image/") {
+		log.Printf("Not an image mime type: %v\n", mimeType)
 		return false, ""
 	}
 	var extensions []string
