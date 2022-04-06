@@ -47,6 +47,8 @@ func WriteSuccessfullyCreatedMessage(ctx *gin.Context, message string) {
 
 func Write(ctx *gin.Context, code int, object interface{}) {
 	ctx.IndentedJSON(code, object)
-	log.Println(object)
+	if code < 200 || code > 299 {
+		log.Println(object)
+	}
 	writeNewLine(ctx)
 }
