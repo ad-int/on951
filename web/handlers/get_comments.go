@@ -3,8 +3,8 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"log"
-	"main/database"
 	dbStructure "main/database/structure"
+	"main/state"
 	"main/web"
 	"net/http"
 	"strconv"
@@ -13,7 +13,7 @@ import (
 
 func GetComments(ctx *gin.Context) {
 
-	db := database.GetDB()
+	db := state.GetApplication().GetDB()
 	var article dbStructure.ArticleWithComments
 	articleId := strings.TrimSpace(ctx.Query("article_id"))
 	if articleId == "" {

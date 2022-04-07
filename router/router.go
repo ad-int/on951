@@ -38,10 +38,10 @@ func (appRouter *TAppRouter) InitRoutes(routes *map[string]TRoutesList) {
 			} else {
 				handle = appRouter.engine
 			}
+			thisHandle := handle.Handle(method, path, routeDescription.Handler)
 			if len(routeDescription.Middlewares) > 0 {
-				handle.Use(routeDescription.Middlewares...)
+				thisHandle.Use(routeDescription.Middlewares...)
 			}
-			handle.Handle(method, path, routeDescription.Handler)
 		}
 	}
 }

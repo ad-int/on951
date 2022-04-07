@@ -2,15 +2,15 @@ package handlers
 
 import (
 	"log"
-	"main/database"
 	dbStructure "main/database/structure"
 	"main/randomizer"
+	"main/state"
 	"math/rand"
 	"time"
 )
 
 func Generate() {
-	db := database.GetDB()
+	db := state.GetApplication().GetDB()
 
 	rand.Seed(time.Now().UnixNano())
 

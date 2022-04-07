@@ -6,24 +6,21 @@ import (
 
 )
 
-var db *gorm.DB
-
-func ConnectToDB(dsn string) *gorm.DB {
-	if db != nil {
-		return db
+func (db *TDatabase)ConnectToDB(dsn string) {
+	if db.Db != nil {
+		return
 	}
-	x, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+	x, err := gorm.Open(sqlite.Open(dsn), &db.Config)
 	if err != nil {
 		panic(err)
 	}
-	db = x
-	return db
+	db.Db = x
 
 }
-func GetDB() *gorm.DB {
-	return db
+func (db *TDatabase)GetDB() *gorm.DB {
+	return db.Db
 }
 
-func Disconnect() {
-	db = nil
+func (db *TDatabase)Disconnect() {
+	db.Db = nil
 }

@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"main/database"
 	dbStructure "main/database/structure"
+	"main/state"
 	"main/web"
 	"net/http"
 	"strings"
@@ -11,7 +11,7 @@ import (
 
 func GetArticle(ctx *gin.Context) {
 
-	db := database.GetDB()
+	db := state.GetApplication().GetDB()
 	var article dbStructure.Article
 
 	articleId := strings.TrimSpace(ctx.Query("article_id"))

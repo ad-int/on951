@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"main/database"
 	dbStructure "main/database/structure"
+	"main/state"
 	"main/web"
 	"net/http"
 	"strconv"
@@ -11,7 +11,7 @@ import (
 
 func GetArticles(ctx *gin.Context) {
 
-	db := database.GetDB()
+	db := state.GetApplication().GetDB()
 	var articles []dbStructure.ArticleBriefInfo
 
 	paramPageNo := ctx.DefaultQuery("page", "1")

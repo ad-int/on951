@@ -6,6 +6,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/pascaldekloe/jwt"
 	"log"
+	"main/database"
 	dbStructure "main/database/structure"
 	"main/router"
 	"os"
@@ -26,6 +27,7 @@ var application *TApplication
 
 type TApplication struct {
 	config map[string]string
+	database.TDatabase
 	router router.TAppRouter
 }
 
@@ -100,7 +102,7 @@ func GetImagesDir() string {
 	}
 	iDir := filepath.Join(dir, ImagesDirectory)
 	fi, err := os.Stat(iDir)
-	if  err != nil {
+	if err != nil {
 		log.Println(err)
 		return ""
 	}

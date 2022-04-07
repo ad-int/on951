@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
-	"main/database"
 	dbStructure "main/database/structure"
 	"main/image_links_parser"
 	"main/models"
@@ -22,7 +21,7 @@ func PutComment(ctx *gin.Context) {
 		return
 	}
 
-	db := database.GetDB()
+	db := state.GetApplication().GetDB()
 	var comment dbStructure.Comment
 	articleId, err := strconv.Atoi(strings.TrimSpace(ctx.Query("article_id")))
 

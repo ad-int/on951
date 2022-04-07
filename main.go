@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"log"
-	"main/database"
 	"main/router"
 	"main/state"
 	"main/web/handlers"
@@ -15,8 +14,8 @@ func main() {
 
 	app := state.GetApplication()
 	app.ReadEnvFile()
-	database.ConnectToDB(state.GetApplication().GetConfigValue("DSN"))
-	database.AutoMigrate()
+	app.ConnectToDB(state.GetApplication().GetConfigValue("DSN"))
+	app.AutoMigrate()
 	for t := 0; t < 20; t++ { // Generating random articles
 		handlers.Generate()
 	}
