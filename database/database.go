@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type IDatabase interface {
 	
 	connectToDB(dsn string)
-	Disconnect()
+	DisconnectDB()
 	GetDB()
 }
 

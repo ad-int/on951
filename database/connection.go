@@ -7,20 +7,20 @@ import (
 )
 
 func (db *TDatabase)ConnectToDB(dsn string) {
+	var err error
 	if db.Db != nil {
 		return
 	}
-	x, err := gorm.Open(sqlite.Open(dsn), &db.Config)
+	db.Db, err = gorm.Open(sqlite.Open(dsn), &db.Config)
 	if err != nil {
 		panic(err)
 	}
-	db.Db = x
 
 }
 func (db *TDatabase)GetDB() *gorm.DB {
 	return db.Db
 }
 
-func (db *TDatabase)Disconnect() {
+func (db *TDatabase)DisconnectDB() {
 	db.Db = nil
 }
