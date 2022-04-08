@@ -1,38 +1,40 @@
 package database
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 type TestCase = struct {
-	actual   string
-	expected string
-	panics   bool
+	dsn                     string
+	isConnectionEstablished bool
 }
 
 func TestConnectToDB(t *testing.T) {
-	//assert := assert.New(t)
 	databaseMock := new(TDatabaseMock)
 
-	for _, test := range getTestsDataForConnectToDB() {
-		if test.panics {
-			databaseMock.On("ConnectToDB", test.actual).Panic("Cannot connect to DB")
-			//assert.Panics(func() { database.ConnectToDB(test.actual) })
-		} else {
-			databaseMock.On("ConnectToDB", test.actual).Return()
-			//database.ConnectToDB(test.actual)
-			//assert.Equal(test.expected, reflect.TypeOf(database.GetDB()).String())
-			//database.DisconnectDB()
+	for _, testCase := range getTestsDataForConnectToDB() {
+		databaseMock.On("ConnectToDB", testCase.dsn).Return(testCase.isConnectionEstablished)
+		if !testCase.isConnectionEstablished {
+			databaseMock.On("ConnectToDB", testCase.dsn).Panic(DbConnectionError)
 		}
-		a := App{*databaseMock}
-		a.ConnectToDB(test.actual)
-		databaseMock.AssertExpectations(t)
 	}
+	for _, test := range getTestsDataForConnectToDB() {
+		a := App{databaseMock}
+		if test.isConnectionEstablished {
+			connOk := a.ConnectToDB(test.dsn)
+			a.DisconnectDB()
+			assert.Equal(t, test.isConnectionEstablished, connOk)
+		} else {
+			assert.PanicsWithError(t, DbConnectionError, func() { a.ConnectToDB(test.dsn) })
+		}
+	}
+	databaseMock.AssertExpectations(t)
 
 }
 func getTestsDataForConnectToDB() []TestCase {
 	return []TestCase{
-		{"test.db", "*gorm.DB", false},
-		{"invalid-dsn", "", true},
+		{dsn: "test.db", isConnectionEstablished: true},
+		{dsn: "invalid-dsn", isConnectionEstablished: false},
 	}
 }
