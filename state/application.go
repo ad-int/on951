@@ -6,6 +6,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/pascaldekloe/jwt"
 	"log"
+	"main/api"
 	"main/database"
 	dbStructure "main/database/structure"
 	"main/router"
@@ -28,7 +29,8 @@ var application *TApplication
 type TApplication struct {
 	config map[string]string
 	database.TDatabase
-	router router.TAppRouter
+	router       router.TAppRouter
+	articlesRepo *api.TArticlesRepository
 }
 
 func GetApplication() *TApplication {
@@ -37,6 +39,10 @@ func GetApplication() *TApplication {
 		return application
 	}
 	return application
+}
+
+func (app *TApplication) GetArticlesRepo() *api.TArticlesRepository {
+	return app.articlesRepo
 }
 
 func (app *TApplication) GetConfigValue(key string) string {
@@ -54,6 +60,9 @@ func (app *TApplication) ReadEnvFile() {
 
 func (app *TApplication) Init(routes *map[string]router.TRoutesList) {
 
+	app.articlesRepo = &api.TArticlesRepository{
+		TDatabase: app.TDatabase,
+	}
 	app.router.Configure()
 	app.router.InitRoutes(routes)
 	app.router.Run()

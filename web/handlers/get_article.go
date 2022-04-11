@@ -2,26 +2,28 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	dbStructure "main/database/structure"
 	"main/state"
 	"main/web"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
 func GetArticle(ctx *gin.Context) {
 
-	db := state.GetApplication().GetDB()
-	var article dbStructure.Article
-
-	articleId := strings.TrimSpace(ctx.Query("article_id"))
-	if articleId == "" {
+	paramArticleId := strings.TrimSpace(ctx.Query("article_id"))
+	if paramArticleId == "" {
 		web.WriteBadRequestError(ctx, "Specify article ID")
 		return
 	}
+	articleId, err := strconv.Atoi(paramArticleId)
+	if err != nil {
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
-	tx := db.First(&article, articleId)
-	if tx.RowsAffected != 1 {
+	article, found := state.GetApplication().GetArticlesRepo().GetArticle(articleId)
+	if !found {
 		web.Write(ctx, http.StatusOK, []string{})
 		return
 	}

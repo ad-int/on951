@@ -10,10 +10,6 @@ import (
 )
 
 func GetArticles(ctx *gin.Context) {
-
-	db := state.GetApplication().GetDB()
-	var articles []dbStructure.ArticleBriefInfo
-
 	paramPageNo := ctx.DefaultQuery("page", "1")
 	paramPageSize := ctx.DefaultQuery("page_size", "20")
 	PageNo, err := strconv.Atoi(paramPageNo)
@@ -26,7 +22,8 @@ func GetArticles(ctx *gin.Context) {
 		_ = ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	db.Table(dbStructure.TableArticles).Offset((PageNo - 1) * pageSize).Limit(pageSize).Find(&articles)
+	var articles []dbStructure.ArticleBriefInfo
+	articles = state.GetApplication().GetArticlesRepo().GetArticles((PageNo-1)*pageSize, pageSize)
 	web.Write(ctx, http.StatusAccepted, articles)
 
 }

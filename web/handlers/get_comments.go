@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"log"
-	dbStructure "main/database/structure"
 	"main/state"
 	"main/web"
 	"net/http"
@@ -12,12 +11,14 @@ import (
 )
 
 func GetComments(ctx *gin.Context) {
-
-	db := state.GetApplication().GetDB()
-	var article dbStructure.ArticleWithComments
-	articleId := strings.TrimSpace(ctx.Query("article_id"))
-	if articleId == "" {
+	paramArticleId := strings.TrimSpace(ctx.Query("article_id"))
+	if paramArticleId == "" {
 		web.WriteBadRequestError(ctx, "Specify article ID")
+		return
+	}
+	articleId, err := strconv.Atoi(paramArticleId)
+	if err != nil {
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	paramPageNo := ctx.DefaultQuery("page", "1")
@@ -38,11 +39,8 @@ func GetComments(ctx *gin.Context) {
 		web.Write(ctx, http.StatusOK, err)
 		return
 	}
-	tx := db.Debug().
-		Table(dbStructure.TableArticles).
-		Preload("Comments").
-		First(&article, articleId)
-	if tx.RowsAffected < 1 {
+	article, found := state.GetApplication().GetArticlesRepo().GetArticle(articleId)
+	if !found {
 		web.WriteMessage(ctx, http.StatusNotFound, "Empty :(")
 		return
 	}
