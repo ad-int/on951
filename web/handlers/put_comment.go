@@ -21,7 +21,7 @@ func PutComment(ctx *gin.Context) {
 		return
 	}
 
-	db := state.GetApplication().GetDB()
+	db := state.GetApplication().GetArticlesRepo().GetDB()
 	var comment dbStructure.Comment
 	articleId, err := strconv.Atoi(strings.TrimSpace(ctx.Query("article_id")))
 

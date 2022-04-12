@@ -20,13 +20,13 @@ func TestConnectToDB(t *testing.T) {
 		}
 	}
 	for _, test := range getTestsDataForConnectToDB() {
-		a := App{databaseMock}
+		application := App{TDatabaseMock: databaseMock}
 		if test.isConnectionEstablished {
-			connOk := a.ConnectToDB(test.dsn)
-			a.DisconnectDB()
+			connOk := application.ConnectToDB(test.dsn)
+			application.DisconnectDB()
 			assert.Equal(t, test.isConnectionEstablished, connOk)
 		} else {
-			assert.PanicsWithError(t, DbConnectionError, func() { a.ConnectToDB(test.dsn) })
+			assert.PanicsWithError(t, DbConnectionError, func() { application.ConnectToDB(test.dsn) })
 		}
 	}
 	databaseMock.AssertExpectations(t)

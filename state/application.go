@@ -27,8 +27,7 @@ const ImagesDirectory = "images"
 var application *TApplication
 
 type TApplication struct {
-	config map[string]string
-	database.TDatabase
+	config       map[string]string
 	router       router.TAppRouter
 	articlesRepo *api.TArticlesRepository
 }
@@ -58,11 +57,24 @@ func (app *TApplication) ReadEnvFile() {
 	}
 }
 
+func (app *TApplication) InitDb() {
+	db := database.TDatabase{}
+	connOk := db.ConnectToDB(GetApplication().GetConfigValue("DSN"))
+	if !connOk {
+		log.Fatalln("error connecting to db")
+	}
+	app.articlesRepo = &api.TArticlesRepository{
+		TDatabase: db,
+	}
+	app.GetArticlesRepo().AutoMigrate()
+}
 func (app *TApplication) Init(routes *map[string]router.TRoutesList) {
 
-	app.articlesRepo = &api.TArticlesRepository{
-		TDatabase: app.TDatabase,
+	if len(GetImagesDir()) < 1 {
+		log.Fatalln("Cannot read images directory path")
 	}
+	log.Println(GetImagesDir())
+
 	app.router.Configure()
 	app.router.InitRoutes(routes)
 	app.router.Run()
