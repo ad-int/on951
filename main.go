@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"main/router"
 	"main/state"
 	"main/web/handlers"
@@ -25,7 +26,7 @@ func main() {
 		handlers.Generate()
 	}
 
-	app.Init(&map[string]router.TRoutesList{
+	err := app.Init(&map[string]router.TRoutesList{
 		http.MethodGet: {
 			"health-check": {
 				Name:    "Health Check",
@@ -59,4 +60,7 @@ func main() {
 			},
 		},
 	})
+	if err != nil {
+		log.Fatalln(err)
+	}
 }

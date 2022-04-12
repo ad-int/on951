@@ -46,6 +46,6 @@ func (appRouter *TAppRouter) InitRoutes(routes *map[string]TRoutesList) {
 	}
 }
 
-func (appRouter *TAppRouter) Run() {
-	appRouter.engine.Run()
+func (appRouter *TAppRouter) Run() error {
+	return appRouter.engine.Run()
 }

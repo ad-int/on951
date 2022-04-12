@@ -48,16 +48,18 @@ func (app *TApplication) GetConfigValue(key string) string {
 	return app.config[key]
 }
 
-func (app *TApplication) ReadEnvFile() {
+func (app *TApplication) ReadEnvFile() bool {
 	var err error
 	app.config, err = godotenv.Read(".env")
 	if err != nil {
 		log.Println(err)
 		log.Fatalln("Unable to read .env file!")
+		return false
 	}
+	return true
 }
 
-func (app *TApplication) InitDb() {
+func (app *TApplication) InitDb() bool {
 	db := database.TDatabase{}
 	connOk := db.ConnectToDB(GetApplication().GetConfigValue("DSN"))
 	if !connOk {
@@ -67,8 +69,9 @@ func (app *TApplication) InitDb() {
 		TDatabase: db,
 	}
 	app.GetArticlesRepo().AutoMigrate()
+	return connOk
 }
-func (app *TApplication) Init(routes *map[string]router.TRoutesList) {
+func (app *TApplication) Init(routes *map[string]router.TRoutesList) error {
 
 	if len(GetImagesDir()) < 1 {
 		log.Fatalln("Cannot read images directory path")
@@ -77,7 +80,8 @@ func (app *TApplication) Init(routes *map[string]router.TRoutesList) {
 
 	app.router.Configure()
 	app.router.InitRoutes(routes)
-	app.router.Run()
+	return app.router.Run()
+
 }
 
 func GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error) {
