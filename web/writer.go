@@ -3,8 +3,8 @@ package web
 import (
 	"github.com/gin-gonic/gin"
 	"log"
-	"main/models"
 	"net/http"
+	"on951/models"
 )
 
 func writeNewLine(ctx *gin.Context) {

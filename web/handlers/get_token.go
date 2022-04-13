@@ -6,9 +6,9 @@ import (
 	"github.com/pascaldekloe/jwt"
 	"golang.org/x/crypto/bcrypt"
 	"log"
-	dbStructure "main/database/structure"
-	"main/state"
 	"net/http"
+	dbStructure "on951/database/structure"
+	"on951/state"
 	"time"
 )
 

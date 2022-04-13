@@ -6,10 +6,10 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/pascaldekloe/jwt"
 	"log"
-	"main/api"
-	"main/database"
-	dbStructure "main/database/structure"
-	"main/router"
+	"on951/api"
+	"on951/database"
+	dbStructure "on951/database/structure"
+	"on951/router"
 	"os"
 	"path/filepath"
 	"strings"
@@ -38,6 +38,16 @@ func GetApplication() *TApplication {
 		return application
 	}
 	return application
+}
+
+func Bootstrap(routesList *map[string]router.TRoutesList, userFuncs ...func()) {
+	appInstance := GetApplication()
+	appInstance.ReadEnvFile()
+	appInstance.InitDb()
+	for _, userFunc := range userFuncs {
+		userFunc()
+	}
+	appInstance.Init(routesList)
 }
 
 func (app *TApplication) GetArticlesRepo() *api.TArticlesRepository {

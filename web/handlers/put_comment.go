@@ -3,12 +3,12 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
-	dbStructure "main/database/structure"
-	"main/image_links_parser"
-	"main/models"
-	"main/state"
-	"main/web"
 	"net/http"
+	dbStructure "on951/database/structure"
+	"on951/image_links_parser"
+	"on951/models"
+	"on951/state"
+	"on951/web"
 	"strconv"
 	"strings"
 )

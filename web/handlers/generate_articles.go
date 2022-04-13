@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"log"
-	dbStructure "main/database/structure"
-	"main/randomizer"
-	"main/state"
 	"math/rand"
+	dbStructure "on951/database/structure"
+	"on951/randomizer"
+	"on951/state"
 	"time"
 )
 

@@ -1,4 +1,4 @@
-module main
+module on951
 
 go 1.18
 

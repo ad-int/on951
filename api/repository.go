@@ -1,8 +1,8 @@
 package api
 
 import (
-	"main/database"
-	dbStructure "main/database/structure"
+	"on951/database"
+	dbStructure "on951/database/structure"
 )
 
 type ArticlesRepository interface {

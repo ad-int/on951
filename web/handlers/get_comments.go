@@ -3,9 +3,9 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"log"
-	"main/state"
-	"main/web"
 	"net/http"
+	"on951/state"
+	"on951/web"
 	"strconv"
 	"strings"
 )

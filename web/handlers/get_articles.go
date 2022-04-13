@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	dbStructure "main/database/structure"
-	"main/state"
-	"main/web"
 	"net/http"
+	dbStructure "on951/database/structure"
+	"on951/state"
+	"on951/web"
 	"strconv"
 )
 

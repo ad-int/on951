@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"main/models"
-	"main/web"
 	"net/http"
+	"on951/models"
+	"on951/web"
 )
 
 const MsgAllGood = "All good"
