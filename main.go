@@ -4,8 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"on951/application"
 	"on951/router"
-	"on951/state"
 	"on951/web/handlers"
 	"on951/web/middleware"
 )
@@ -18,10 +18,10 @@ func main() {
 	//image_links_parser.Process(`ikljghi  <img src="data:application/json;base64," /> 232refwdsf <img src="data:image/png;Es!a, QQQ" />grd`)
 	//return
 
-	if len(state.GetImagesDir()) < 1 {
+	if len(application.GetImagesDir()) < 1 {
 		log.Fatalln("Cannot read images directory path")
 	}
-	log.Println(state.GetImagesDir())
+	log.Println(application.GetImagesDir())
 
 	routes := map[string]router.TRoutesList{
 
@@ -59,7 +59,7 @@ func main() {
 		},
 	}
 
-	state.Bootstrap(&routes, func() {
+	application.Bootstrap(&routes, func() {
 		for t := 0; t < 20; t++ { // Generating random articles
 			handlers.Generate()
 		}

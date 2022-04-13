@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"mime"
-	"on951/state"
+	"on951/application"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -85,7 +85,7 @@ func saveImage(filename string, mimeType string, encoding string, encodedImage s
 		log.Printf("Unkown encoding %v\n", encoding)
 		return false
 	}
-	err = ioutil.WriteFile(filepath.Join(state.GetImagesDir(), filename), decodedImage, fs.ModePerm)
+	err = ioutil.WriteFile(filepath.Join(application.GetImagesDir(), filename), decodedImage, fs.ModePerm)
 	if err != nil {
 		log.Println(err)
 		return false
@@ -99,7 +99,7 @@ func storeImageLinks(links []string) map[string]string {
 
 func updateImageLinks(text string, links map[string]string) string {
 	for filename, imgTag := range links {
-		updatedImgTag := fmt.Sprintf("<img src=\"%v\" />", string(os.PathSeparator)+filepath.Join(state.ImagesDirectory, filename))
+		updatedImgTag := fmt.Sprintf("<img src=\"%v\" />", string(os.PathSeparator)+filepath.Join(application.ImagesDirectory, filename))
 		text = strings.Replace(text, imgTag, updatedImgTag, -1)
 	}
 	return text

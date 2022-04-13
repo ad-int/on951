@@ -3,8 +3,8 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"on951/application"
 	dbStructure "on951/database/structure"
-	"on951/state"
 	"on951/web"
 	"strconv"
 )
@@ -23,7 +23,7 @@ func GetArticles(ctx *gin.Context) {
 		return
 	}
 	var articles []dbStructure.ArticleBriefInfo
-	articles = state.GetApplication().GetArticlesRepo().GetArticles((PageNo-1)*pageSize, pageSize)
+	articles = application.GetApplication().GetArticlesRepo().GetArticles((PageNo-1)*pageSize, pageSize)
 	web.Write(ctx, http.StatusAccepted, articles)
 
 }

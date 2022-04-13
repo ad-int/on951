@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"on951/state"
+	"on951/application"
 	"on951/web"
 )
 
@@ -22,7 +22,7 @@ func EnableCORS(next http.Handler) http.Handler {
 func ApiAuthCheck(ctx *gin.Context) {
 
 	ctx.Header("Vary", "Authorization")
-	user, err := state.GetAuthorizedUserFromHeader(ctx.GetHeader("Authorization"))
+	user, err := application.GetAuthorizedUserFromHeader(ctx.GetHeader("Authorization"))
 	if err != nil {
 		web.Write(ctx, http.StatusUnauthorized, err)
 		ctx.Abort()

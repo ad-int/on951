@@ -3,14 +3,14 @@ package handlers
 import (
 	"log"
 	"math/rand"
+	"on951/application"
 	dbStructure "on951/database/structure"
 	"on951/randomizer"
-	"on951/state"
 	"time"
 )
 
 func Generate() {
-	db := state.GetApplication().GetArticlesRepo().GetDB()
+	db := application.GetApplication().GetArticlesRepo().GetDB()
 
 	rand.Seed(time.Now().UnixNano())
 

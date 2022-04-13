@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"on951/state"
+	"on951/application"
 	"on951/web"
 	"strconv"
 	"strings"
@@ -39,7 +39,7 @@ func GetComments(ctx *gin.Context) {
 		web.Write(ctx, http.StatusOK, err)
 		return
 	}
-	article, found := state.GetApplication().GetArticlesRepo().GetArticle(articleId)
+	article, found := application.GetApplication().GetArticlesRepo().GetArticle(articleId)
 	if !found {
 		web.WriteMessage(ctx, http.StatusNotFound, "Empty :(")
 		return

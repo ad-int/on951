@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"on951/state"
+	"on951/application"
 	"on951/web"
 	"strconv"
 	"strings"
@@ -22,7 +22,7 @@ func GetArticle(ctx *gin.Context) {
 		return
 	}
 
-	article, found := state.GetApplication().GetArticlesRepo().GetArticle(articleId)
+	article, found := application.GetApplication().GetArticlesRepo().GetArticle(articleId)
 	if !found {
 		web.Write(ctx, http.StatusOK, []string{})
 		return

@@ -7,8 +7,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
+	"on951/application"
 	dbStructure "on951/database/structure"
-	"on951/state"
 	"time"
 )
 
@@ -16,8 +16,8 @@ func GetToken(ctx *gin.Context) {
 
 	user := ctx.DefaultQuery("user", "guest")
 	password := ctx.DefaultQuery("password", "not-set")
-	audience := ctx.DefaultQuery("audience", state.GetApplication().GetConfigValue("AUDIENCE"))
-	issuer := ctx.DefaultQuery("issuer", state.GetApplication().GetConfigValue("ISSUER"))
+	audience := ctx.DefaultQuery("audience", application.GetApplication().GetConfigValue("AUDIENCE"))
+	issuer := ctx.DefaultQuery("issuer", application.GetApplication().GetConfigValue("ISSUER"))
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
@@ -45,7 +45,7 @@ func GetToken(ctx *gin.Context) {
 	claims.Audiences = []string{audience}
 
 	var jwtBytes []byte
-	jwtBytes, err = claims.HMACSign(jwt.HS512, []byte(state.GetApplication().GetConfigValue("SECRET")))
+	jwtBytes, err = claims.HMACSign(jwt.HS512, []byte(application.GetApplication().GetConfigValue("SECRET")))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err)
 	}

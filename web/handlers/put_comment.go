@@ -4,10 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"net/http"
+	"on951/application"
 	dbStructure "on951/database/structure"
 	"on951/image_links_parser"
 	"on951/models"
-	"on951/state"
 	"on951/web"
 	"strconv"
 	"strings"
@@ -15,13 +15,13 @@ import (
 
 func PutComment(ctx *gin.Context) {
 
-	authorizedUser, err := state.GetAuthorizedUserFromHeader(ctx.GetHeader("Authorization"))
+	authorizedUser, err := application.GetAuthorizedUserFromHeader(ctx.GetHeader("Authorization"))
 	if err != nil {
 		web.WriteMessage(ctx, http.StatusForbidden, "No logged user!")
 		return
 	}
 
-	db := state.GetApplication().GetArticlesRepo().GetDB()
+	db := application.GetApplication().GetArticlesRepo().GetDB()
 	var comment dbStructure.Comment
 	articleId, err := strconv.Atoi(strings.TrimSpace(ctx.Query("article_id")))
 
