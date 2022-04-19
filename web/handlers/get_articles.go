@@ -7,11 +7,27 @@ import (
 	dbStructure "on951/database/structure"
 	"on951/web"
 	"strconv"
+	"strings"
+)
+
+const (
+	defaultParamPageNo   = "1"
+	defaultParamPageSize = "20"
 )
 
 func GetArticles(ctx *gin.Context) {
-	paramPageNo := ctx.DefaultQuery("page", "1")
-	paramPageSize := ctx.DefaultQuery("page_size", "20")
+	paramPageNo := strings.TrimSpace(ctx.Param("page"))
+	paramPageSize := strings.TrimSpace(ctx.Param("page_size"))
+
+	if len(paramPageNo) < 1 {
+		paramPageNo = defaultParamPageNo
+
+	}
+	if len(paramPageSize) < 1 {
+		paramPageNo = defaultParamPageSize
+
+	}
+
 	PageNo, err := strconv.Atoi(paramPageNo)
 	if err != nil {
 		_ = ctx.AbortWithError(http.StatusBadRequest, err)

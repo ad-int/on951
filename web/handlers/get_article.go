@@ -11,7 +11,7 @@ import (
 
 func GetArticle(ctx *gin.Context) {
 
-	paramArticleId := strings.TrimSpace(ctx.Query("article_id"))
+	paramArticleId := strings.TrimSpace(ctx.Param("article_id"))
 	if paramArticleId == "" {
 		web.WriteBadRequestError(ctx, "Specify article ID")
 		return

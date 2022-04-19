@@ -34,7 +34,7 @@ func main() {
 				Name:    "Get token",
 				Handler: handlers.GetToken,
 			},
-			"articles": {
+			"articles/:page/:page_size": {
 				Name:        "List articles",
 				Handler:     handlers.GetArticles,
 				Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
@@ -44,14 +44,14 @@ func main() {
 				Handler:     handlers.GetComments,
 				Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
 			},
-			"article": {
+			"article/:article_id": {
 				Name:        "Get specific article",
 				Handler:     handlers.GetArticle,
 				Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
 			},
 		},
 		http.MethodPut: {
-			"comment": {
+			"comment/:article_id": {
 				Name:        "Post a comment",
 				Handler:     handlers.PutComment,
 				Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
