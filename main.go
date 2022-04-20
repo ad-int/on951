@@ -34,7 +34,7 @@ func main() {
 				Name:    "Get token",
 				Handler: handlers.GetToken,
 			},
-			"articles/:page/:page_size": {
+			"articles": {
 				Name:        "List articles",
 				Handler:     handlers.GetArticles,
 				Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
@@ -58,7 +58,6 @@ func main() {
 			},
 		},
 	}
-
 	application.Bootstrap(&routes, func() {
 		for t := 0; t < 20; t++ { // Generating random articles
 			handlers.Generate()

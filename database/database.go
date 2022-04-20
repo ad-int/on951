@@ -1,13 +1,16 @@
 package database
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 const DbConnectionError = "could not connect to DB"
 
 type IDatabase interface {
-	connectToDB(dsn string)
+	ConnectToDB(dsn string) bool
 	DisconnectDB()
-	GetDB()
+	GetDB() *gorm.DB
+	AutoMigrate()
 }
 
 type TDatabase struct {

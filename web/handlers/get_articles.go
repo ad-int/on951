@@ -16,8 +16,8 @@ const (
 )
 
 func GetArticles(ctx *gin.Context) {
-	paramPageNo := strings.TrimSpace(ctx.Param("page"))
-	paramPageSize := strings.TrimSpace(ctx.Param("page_size"))
+	paramPageNo := strings.TrimSpace(ctx.DefaultQuery("page", defaultParamPageNo))
+	paramPageSize := strings.TrimSpace(ctx.DefaultQuery("page_size", defaultParamPageSize))
 
 	if len(paramPageNo) < 1 {
 		paramPageNo = defaultParamPageNo

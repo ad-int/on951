@@ -9,14 +9,20 @@ type ArticlesRepository interface {
 	GetArticles(pageNo int, pageSize int) []dbStructure.ArticleBriefInfo
 	GetArticle(articleId int) (dbStructure.ArticleWithComments, bool)
 	PutComment(articleId int, comment string) bool
+	GetDB()
 }
 type TArticlesRepository struct {
-	database.TDatabase
+	database.IDatabase
 }
 
 func (aRepo *TArticlesRepository) GetArticles(pageNo int, pageSize int) []dbStructure.ArticleBriefInfo {
 	var list []dbStructure.ArticleBriefInfo
-	aRepo.GetDB().Table(dbStructure.TableArticles).Offset((pageNo - 1) * pageSize).Limit(pageSize).Find(&list)
+	aRepo.GetDB().
+		Debug().
+		Table(dbStructure.TableArticles).
+		Offset((pageNo - 1) * pageSize).
+		Limit(pageSize).
+		Find(&list)
 	return list
 }
 
@@ -27,7 +33,8 @@ func (aRepo *TArticlesRepository) GetArticle(articleId int) (dbStructure.Article
 }
 func (aRepo *TArticlesRepository) GetArticleWithComments(articleId int) (dbStructure.ArticleWithComments, bool) {
 	var article dbStructure.ArticleWithComments
-	tx := aRepo.GetDB().Debug().
+	tx := aRepo.GetDB().
+		Debug().
 		Table(dbStructure.TableArticles).
 		Preload("Comments").
 		First(&article, articleId)

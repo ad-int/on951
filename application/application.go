@@ -47,7 +47,9 @@ func Bootstrap(routesList *map[string]router.TRoutesList, userFuncs ...func()) {
 	for _, userFunc := range userFuncs {
 		userFunc()
 	}
-	appInstance.Init(routesList)
+	if err := appInstance.Init(routesList); err != nil {
+		panic(err)
+	}
 }
 
 func (app *TApplication) GetArticlesRepo() *api.TArticlesRepository {
@@ -70,13 +72,13 @@ func (app *TApplication) ReadEnvFile() bool {
 }
 
 func (app *TApplication) InitDb() bool {
-	db := database.TDatabase{}
+	db := &database.TDatabase{}
 	connOk := db.ConnectToDB(GetApplication().GetConfigValue("DSN"))
 	if !connOk {
 		log.Fatalln("error connecting to db")
 	}
 	app.articlesRepo = &api.TArticlesRepository{
-		TDatabase: db,
+		IDatabase: db,
 	}
 	app.GetArticlesRepo().AutoMigrate()
 	return connOk
