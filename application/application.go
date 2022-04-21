@@ -24,7 +24,27 @@ const MsgInvalidIssuer = "invalid issuer"
 
 const ImagesDirectory = "images"
 
-var application *TApplication
+type IApplicationRepository interface {
+	GetApplication() *TApplication
+	Bootstrap(routesList *map[string]router.TRoutesList, userFuncs ...func())
+}
+
+type IApplication interface {
+	GetConfigValue(key string) string
+	GetImagesDir() string
+	InitDb() bool
+	ReadEnvFile() bool
+	Init(routes *map[string]router.TRoutesList) error
+	GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error)
+	GetArticlesRepo() *api.TArticlesRepository
+	GetRouter() router.AppRouter
+}
+
+var applicationRepository = &TApplicationRepository{}
+
+type TApplicationRepository struct {
+	application IApplication
+}
 
 type TApplication struct {
 	config       map[string]string
@@ -32,17 +52,27 @@ type TApplication struct {
 	articlesRepo *api.TArticlesRepository
 }
 
-func GetApplication() *TApplication {
-	if application == nil {
-		application = &TApplication{}
-		return application
+func (applicationRepository *TApplicationRepository) GetApplication() IApplication {
+	if applicationRepository.application == nil {
+		applicationRepository.application = &TApplication{}
 	}
-	return application
+	return applicationRepository.application
 }
 
-func Bootstrap(routesList *map[string]router.TRoutesList, userFuncs ...func()) {
-	appInstance := GetApplication()
+func GetApplicationRepository() *TApplicationRepository {
+	if applicationRepository == nil {
+		applicationRepository = &TApplicationRepository{}
+	}
+	return applicationRepository
+}
+func GetApplication() IApplication {
+	return applicationRepository.GetApplication()
+}
+
+func (applicationRepository *TApplicationRepository) Bootstrap(routesList *map[string]router.TRoutesList, userFuncs ...func()) {
+	appInstance := applicationRepository.GetApplication()
 	appInstance.ReadEnvFile()
+
 	appInstance.InitDb()
 	for _, userFunc := range userFuncs {
 		userFunc()
@@ -73,7 +103,7 @@ func (app *TApplication) ReadEnvFile() bool {
 
 func (app *TApplication) InitDb() bool {
 	db := &database.TDatabase{}
-	connOk := db.ConnectToDB(GetApplication().GetConfigValue("DSN"))
+	connOk := db.ConnectToDB(app.GetConfigValue("DSN"))
 	if !connOk {
 		log.Fatalln("error connecting to db")
 	}
@@ -85,10 +115,10 @@ func (app *TApplication) InitDb() bool {
 }
 func (app *TApplication) Init(routes *map[string]router.TRoutesList) error {
 
-	if len(GetImagesDir()) < 1 {
+	if len(app.GetImagesDir()) < 1 {
 		log.Fatalln("Cannot read images directory path")
 	}
-	log.Println(GetImagesDir())
+	log.Println(app.GetImagesDir())
 
 	app.router.Configure()
 	app.router.InitRoutes(routes)
@@ -96,7 +126,7 @@ func (app *TApplication) Init(routes *map[string]router.TRoutesList) error {
 
 }
 
-func GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error) {
+func (app *TApplication) GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error) {
 
 	if authHeader == "" {
 		return dbStructure.User{}, errors.New(MsgUnauthorized)
@@ -110,7 +140,7 @@ func GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error) {
 		return dbStructure.User{}, errors.New(MsgInvalidAuthorizationToken)
 	}
 
-	claim, err := jwt.HMACCheck([]byte(authHeaderParts[1]), []byte(GetApplication().GetConfigValue("SECRET")))
+	claim, err := jwt.HMACCheck([]byte(authHeaderParts[1]), []byte(app.GetConfigValue("SECRET")))
 	if err != nil {
 		return dbStructure.User{}, err
 	}
@@ -118,11 +148,11 @@ func GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error) {
 		return dbStructure.User{}, errors.New(MsgUnauthorized)
 	}
 
-	if !claim.AcceptAudience(GetApplication().GetConfigValue("AUDIENCE")) {
+	if !claim.AcceptAudience(app.GetConfigValue("AUDIENCE")) {
 		return dbStructure.User{}, errors.New(MsgNotAcceptedAudience)
 	}
 
-	if claim.Issuer != GetApplication().GetConfigValue("ISSUER") {
+	if claim.Issuer != app.GetConfigValue("ISSUER") {
 		return dbStructure.User{}, errors.New(MsgInvalidIssuer)
 	}
 	var user dbStructure.User
@@ -131,7 +161,7 @@ func GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error) {
 	return user, err
 }
 
-func GetImagesDir() string {
+func (app *TApplication) GetImagesDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Println(err)
@@ -147,4 +177,8 @@ func GetImagesDir() string {
 		return ""
 	}
 	return iDir
+}
+
+func (app *TApplication) GetRouter() router.AppRouter {
+	return &app.router
 }

@@ -14,11 +14,11 @@ func main() {
 	//image_links_parser.Process(`ikljghi  <img src="data:application/json;base64," /> 232refwdsf <img src="data:image/png;Es!a, QQQ" />grd`)
 	//return
 
-	if len(application.GetImagesDir()) < 1 {
+	app := application.GetApplicationRepository()
+	if len(app.GetApplication().GetImagesDir()) < 1 {
 		log.Fatalln("Cannot read images directory path")
 	}
-
-	application.Bootstrap(&DefinedRoutes, func() {
+	app.Bootstrap(&DefinedRoutes, func() {
 		for t := 0; t < 20; t++ { // Generating random articles
 			handlers.Generate()
 		}

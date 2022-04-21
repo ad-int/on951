@@ -85,7 +85,7 @@ func saveImage(filename string, mimeType string, encoding string, encodedImage s
 		log.Printf("Unkown encoding %v\n", encoding)
 		return false
 	}
-	err = ioutil.WriteFile(filepath.Join(application.GetImagesDir(), filename), decodedImage, fs.ModePerm)
+	err = ioutil.WriteFile(filepath.Join(application.GetApplication().GetImagesDir(), filename), decodedImage, fs.ModePerm)
 	if err != nil {
 		log.Println(err)
 		return false

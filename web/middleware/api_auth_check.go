@@ -17,7 +17,7 @@ func ApiAuthCheck(ctx *gin.Context) {
 	ctx.Next()
 	return
 	ctx.Header("Vary", "Authorization")
-	user, err := application.GetAuthorizedUserFromHeader(ctx.GetHeader("Authorization"))
+	user, err := application.GetApplication().GetAuthorizedUserFromHeader(ctx.GetHeader("Authorization"))
 	if err != nil {
 		web.Write(ctx, http.StatusUnauthorized, err)
 		ctx.Abort()

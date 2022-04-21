@@ -15,7 +15,7 @@ import (
 
 func PutComment(ctx *gin.Context) {
 
-	authorizedUser, err := application.GetAuthorizedUserFromHeader(ctx.GetHeader("Authorization"))
+	authorizedUser, err := application.GetApplication().GetAuthorizedUserFromHeader(ctx.GetHeader("Authorization"))
 	if err != nil {
 		web.WriteMessage(ctx, http.StatusForbidden, "No logged user!")
 		return

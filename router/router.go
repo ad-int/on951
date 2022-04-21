@@ -20,8 +20,9 @@ type TRouteDescription struct {
 
 type AppRouter interface {
 	InitRoutes(routes *map[string]TRoutesList)
+	GetEngine() *gin.Engine
 	Configure()
-	Run()
+	Run() error
 }
 
 func (appRouter *TAppRouter) Configure() {
@@ -44,6 +45,10 @@ func (appRouter *TAppRouter) InitRoutes(routes *map[string]TRoutesList) {
 			}
 		}
 	}
+}
+
+func (appRouter *TAppRouter) GetEngine() *gin.Engine {
+	return appRouter.engine
 }
 
 func (appRouter *TAppRouter) Run() error {

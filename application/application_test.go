@@ -3,8 +3,10 @@ package application
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
+	"log"
 	"on951/api"
 	"on951/router"
+	"reflect"
 	"testing"
 )
 
@@ -25,7 +27,14 @@ func (suite *applicationTestSuite) TestApplication() {
 
 func (suite *applicationTestSuite) TestApplicationBootstrap() {
 
-	Bootstrap(&map[string]router.TRoutesList{
+	app := &TApplicationMock{}
+
+	app.On("ReadEnvFile").Return(true)
+	app.On("GetImagesDir").Return("yra")
+	app.On("Init").Return(nil)
+	mr := &TApplicationRepository{application: app}
+	log.Println(reflect.TypeOf(mr.GetApplication()))
+	routesList := &map[string]router.TRoutesList{
 		"GET": {
 			"health-check": {
 				Name: "Health Check",
@@ -42,7 +51,19 @@ func (suite *applicationTestSuite) TestApplicationBootstrap() {
 				},
 			},
 		},
-	})
+	}
+	mr.Bootstrap(routesList)
+	routesFound := 0
+	suite.IsType(&TApplicationMock{}, mr.GetApplication())
 
-	suite.IsType(&TApplication{}, GetApplication())
+	for method, routeDescription := range *routesList {
+		for path, _ := range *routeDescription {
+			for _, h := range mr.GetApplication().GetRouter().GetEngine().Routes() {
+				if h.Method == method && h.Path == "/"+path {
+					routesFound++
+				}
+			}
+		}
+	}
+	suite.Equal(len(mr.GetApplication().GetRouter().GetEngine().Routes()), routesFound)
 }
