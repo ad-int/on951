@@ -36,5 +36,6 @@ func getTestsDataForConnectToDB() []TestCase {
 	return []TestCase{
 		{dsn: "test.db", isConnectionEstablished: true},
 		{dsn: "invalid-dsn", isConnectionEstablished: false},
+		{dsn: "invalid-driver", isConnectionEstablished: false},
 	}
 }
