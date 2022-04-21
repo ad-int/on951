@@ -29,7 +29,7 @@ func (aRepo *TArticlesRepository) GetArticles(pageNo int, pageSize int) []dbStru
 func (aRepo *TArticlesRepository) GetArticle(articleId int) (dbStructure.Article, bool) {
 	var article dbStructure.Article
 	tx := aRepo.GetDB().First(&article, articleId)
-	return article, tx.RowsAffected > 1
+	return article, tx.RowsAffected > 0
 }
 func (aRepo *TArticlesRepository) GetArticleWithComments(articleId int) (dbStructure.ArticleWithComments, bool) {
 	var article dbStructure.ArticleWithComments
@@ -38,5 +38,5 @@ func (aRepo *TArticlesRepository) GetArticleWithComments(articleId int) (dbStruc
 		Table(dbStructure.TableArticles).
 		Preload("Comments").
 		First(&article, articleId)
-	return article, tx.RowsAffected > 1
+	return article, tx.RowsAffected > 0
 }
