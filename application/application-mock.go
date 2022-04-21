@@ -38,17 +38,14 @@ func (app *TApplicationMock) ReadEnvFile() bool {
 
 func (app *TApplicationMock) GetImagesDir() string {
 	args := app.Called()
-	log.Println("here!!")
 	return args.String(0)
 }
 
 func (app *TApplicationMock) Init(routes *map[string]router.TRoutesList) error {
 	args := app.Called()
-	log.Println("here!")
 	if len(app.GetImagesDir()) < 1 {
 		log.Fatalln("Cannot read images directory path")
 	}
-	log.Println(app.GetImagesDir())
 
 	app.router.Configure()
 	app.router.InitRoutes(routes)

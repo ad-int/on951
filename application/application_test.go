@@ -10,6 +10,8 @@ import (
 	"testing"
 )
 
+const fakeImagesDir = "path/fake-images-dir"
+
 type applicationTestSuite struct {
 	suite.Suite
 	config       map[string]string
@@ -30,10 +32,10 @@ func (suite *applicationTestSuite) TestApplicationBootstrap() {
 	app := &TApplicationMock{}
 
 	app.On("ReadEnvFile").Return(true)
-	app.On("GetImagesDir").Return("yra")
+	app.On("GetImagesDir").Return(fakeImagesDir)
 	app.On("Init").Return(nil)
-	mr := &TApplicationRepository{application: app}
-	log.Println(reflect.TypeOf(mr.GetApplication()))
+	appRepo := &TApplicationRepository{application: app}
+	log.Println(reflect.TypeOf(appRepo.GetApplication()))
 	routesList := &map[string]router.TRoutesList{
 		"GET": {
 			"health-check": {
@@ -52,18 +54,19 @@ func (suite *applicationTestSuite) TestApplicationBootstrap() {
 			},
 		},
 	}
-	mr.Bootstrap(routesList)
+	appRepo.Bootstrap(routesList)
 	routesFound := 0
-	suite.IsType(&TApplicationMock{}, mr.GetApplication())
+	suite.IsType(&TApplicationMock{}, appRepo.GetApplication())
 
 	for method, routeDescription := range *routesList {
 		for path, _ := range *routeDescription {
-			for _, h := range mr.GetApplication().GetRouter().GetEngine().Routes() {
+			for _, h := range appRepo.GetApplication().GetRouter().GetEngine().Routes() {
 				if h.Method == method && h.Path == "/"+path {
 					routesFound++
 				}
 			}
 		}
 	}
-	suite.Equal(len(mr.GetApplication().GetRouter().GetEngine().Routes()), routesFound)
+	suite.Equal(fakeImagesDir, appRepo.GetApplication().GetImagesDir())
+	suite.Equal(len(appRepo.GetApplication().GetRouter().GetEngine().Routes()), routesFound)
 }
