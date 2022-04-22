@@ -47,7 +47,10 @@ func (app *TApplicationMock) Init(routes *map[string]router.TRoutesList) error {
 		log.Fatalln("Cannot read images directory path")
 	}
 
-	app.router.Configure()
+	err := app.router.Configure()
+	if err != nil {
+		return err
+	}
 	app.router.InitRoutes(routes)
 	return args.Error(0)
 }

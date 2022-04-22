@@ -21,13 +21,13 @@ type TRouteDescription struct {
 type AppRouter interface {
 	InitRoutes(routes *map[string]TRoutesList)
 	GetEngine() *gin.Engine
-	Configure()
+	Configure() error
 	Run() error
 }
 
-func (appRouter *TAppRouter) Configure() {
+func (appRouter *TAppRouter) Configure() error {
 	appRouter.engine = gin.Default()
-	appRouter.engine.SetTrustedProxies([]string{"127.0.0.1"})
+	return appRouter.engine.SetTrustedProxies([]string{"127.0.0.1"})
 }
 
 func (appRouter *TAppRouter) InitRoutes(routes *map[string]TRoutesList) {

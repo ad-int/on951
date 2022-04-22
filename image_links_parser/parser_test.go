@@ -69,3 +69,9 @@ func (suite *imageLinksParserTestSuite) TestUpdateImageLinks() {
 		suite.Equal(testCase.textAfter, updateImageLinks(testCase.textBefore, testCase.images))
 	}
 }
+
+func (suite *imageLinksParserTestSuite) TestDecodeContent() {
+	for _, testCase := range testDecodeContentData {
+		suite.Equal(testCase.decodedContent, decodeContent(testCase.encoding, testCase.content))
+	}
+}

@@ -122,7 +122,10 @@ func (app *TApplication) Init(routes *map[string]router.TRoutesList) error {
 	}
 	log.Println(app.GetImagesDir())
 
-	app.router.Configure()
+	err := app.router.Configure()
+	if err != nil {
+		return err
+	}
 	app.router.InitRoutes(routes)
 	return app.router.Run()
 
