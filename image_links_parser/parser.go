@@ -36,8 +36,6 @@ func grabAllValidImages(text string) map[string]string {
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println(imgTagRegexp.FindAllStringSubmatch(text, -1))
-	log.Println(len(imgTagRegexp.FindAllStringSubmatch(text, -1)))
 	for _, match := range imgTagRegexp.FindAllStringSubmatch(text, -1) {
 		if len(match) != 4 {
 			continue
@@ -126,10 +124,6 @@ func saveImage(filename string, mimeType string, encoding string, encodedImage s
 		return false
 	}
 	return true
-}
-
-func storeImageLinks(links []string) map[string]string {
-	return map[string]string{}
 }
 
 func updateImageLinks(text string, links map[string]string) string {

@@ -64,3 +64,8 @@ func (suite *imageLinksParserTestSuite) TestGetAllValidImages() {
 		suite.Equal(testCase.images, grabAllValidImages(testCase.text))
 	}
 }
+func (suite *imageLinksParserTestSuite) TestUpdateImageLinks() {
+	for _, testCase := range testCommentsWithFixedLinksData {
+		suite.Equal(testCase.textAfter, updateImageLinks(testCase.textBefore, testCase.images))
+	}
+}
