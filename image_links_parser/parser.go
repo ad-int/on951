@@ -30,12 +30,14 @@ func getImageFileName(mimeType string, encoding string, encodedImage string) (st
 }
 
 func grabAllValidImages(text string) map[string]string {
-	imgTagRegexp, err := regexp.Compile(`<img src="data:([\w/]+);(.+),(.+)".*>`)
+	imgTagRegexp, err := regexp.Compile(`(?U)<img src="data:([\w/]+);([^"]+),([^"]+)".*>`)
 	var foundImages = make(map[string]string)
 	var index uint = 0
 	if err != nil {
 		log.Println(err)
 	}
+	log.Println(imgTagRegexp.FindAllStringSubmatch(text, -1))
+	log.Println(len(imgTagRegexp.FindAllStringSubmatch(text, -1)))
 	for _, match := range imgTagRegexp.FindAllStringSubmatch(text, -1) {
 		if len(match) != 4 {
 			continue
@@ -48,6 +50,7 @@ func grabAllValidImages(text string) map[string]string {
 				foundImages[filename] = match[0]
 			}
 		}
+
 	}
 	return foundImages
 }
