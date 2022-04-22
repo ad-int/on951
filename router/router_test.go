@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
+	"strings"
 	"testing"
 )
 
@@ -15,51 +16,51 @@ func TestRouterTestSuite(t *testing.T) {
 }
 
 func (suite *routerTestSuite) TestInitRoutes() {
+	for _, testCase := range testRouterData {
+		router := &TAppRouter{}
 
-	middlewareFunc := func(context *gin.Context) {
+		configurationError := router.Configure(
+			strings.Fields(testCase.config["TRUSTED_PROXIES"]),
+			strings.Fields(testCase.config["CORS_ALLOWED_HEADERS"]),
+			testCase.config["CORS_ALLOW_ALL_ORIGINS"] == "true",
+		)
+		if testCase.configurationFails {
+			suite.NotNil(configurationError)
+			continue
+		} else {
+			suite.Nil(configurationError)
+		}
+		router.InitRoutes(&testCase.routes)
+		routesFound := 0
 
-	}
-
-	handlerFunc1 := func(context *gin.Context) {
-	}
-	handlerFunc2 := func(context *gin.Context) {
-
-	}
-	router := &TAppRouter{}
-	routesList := &map[string]TRoutesList{
-		"GET": {
-			"health-check": {
-				Name:    "Health Check",
-				Handler: handlerFunc1,
-			},
-		},
-		"PUT": {
-			"comment/:article_id": {
-				Name:        "Post a comment",
-				Handler:     handlerFunc2,
-				Middlewares: []gin.HandlerFunc{middlewareFunc},
-			},
-		},
-	}
-	suite.Nil(router.Configure())
-	router.InitRoutes(routesList)
-	routesFound := 0
-
-	for method, routeDescription := range *routesList {
-		for path, _ := range *routeDescription {
-			for _, h := range router.GetEngine().Routes() {
-				if h.Method == method && h.Path == "/"+path {
-
-					routesFound++
+		for method, routeDescription := range testCase.routes {
+			for path, _ := range *routeDescription {
+				for _, h := range router.GetEngine().Routes() {
+					if h.Method == method && h.Path == "/"+path {
+						routesFound++
+					}
 				}
 			}
 		}
+		suite.Equal(len(router.GetEngine().Routes()), routesFound)
 	}
-	suite.Equal(len(router.GetEngine().Routes()), routesFound)
 }
 
 func (suite *routerTestSuite) TestGetEngine() {
-	router := &TAppRouter{}
-	suite.Nil(router.Configure())
-	suite.IsType(&gin.Engine{}, router.GetEngine())
+	for _, testCase := range testRouterData {
+		router := &TAppRouter{}
+		configurationError := router.Configure(
+			strings.Fields(testCase.config["TRUSTED_PROXIES"]),
+			strings.Fields(testCase.config["CORS_ALLOWED_HEADERS"]),
+			testCase.config["CORS_ALLOW_ALL_ORIGINS"] == "true",
+		)
+		if testCase.configurationFails {
+			suite.NotNil(configurationError)
+			continue
+		} else {
+			suite.Nil(configurationError)
+		}
+		suite.IsType(&gin.Engine{}, router.GetEngine())
+	}
+
 }

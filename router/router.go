@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,13 +22,16 @@ type TRouteDescription struct {
 type AppRouter interface {
 	InitRoutes(routes *map[string]TRoutesList)
 	GetEngine() *gin.Engine
-	Configure() error
+	Configure(trustedProxies []string, allowedHeaders []string, allowAllOrigins bool) error
 	Run() error
 }
 
-func (appRouter *TAppRouter) Configure() error {
+func (appRouter *TAppRouter) Configure(trustedProxies []string, allowedHeaders []string, allowAllOrigins bool) error {
 	appRouter.engine = gin.Default()
-	return appRouter.engine.SetTrustedProxies([]string{"127.0.0.1"})
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowHeaders = allowedHeaders
+	corsConfig.AllowAllOrigins = allowAllOrigins
+	return appRouter.engine.SetTrustedProxies(trustedProxies)
 }
 
 func (appRouter *TAppRouter) InitRoutes(routes *map[string]TRoutesList) {

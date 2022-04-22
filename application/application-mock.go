@@ -1,39 +1,22 @@
 package application
 
 import (
+	"errors"
 	"github.com/stretchr/testify/mock"
 	"log"
 	"on951/router"
+	"strings"
 )
-
-type TApplicationRepositoryMock struct {
-	mock.Mock
-	Application IApplication
-}
 
 type TApplicationMock struct {
 	mock.Mock
 	TApplication
 }
 
-func (app *TApplicationRepositoryMock) GetApplication() IApplication {
-	args := app.Called()
-	return args.Get(0).(IApplication)
-}
-
 func (app *TApplicationMock) ReadEnvFile() bool {
 	args := app.Called()
-	returnValue := args.Bool(0)
-	if returnValue {
-		app.config = map[string]string{
-			"DSN":      "",
-			"SECRET":   "213243fdessf",
-			"ISSUER":   "localhost",
-			"AUDIENCE": "general",
-		}
-	}
 	log.Println(app.config)
-	return returnValue
+	return args.Bool(0)
 }
 
 func (app *TApplicationMock) GetImagesDir() string {
@@ -44,13 +27,21 @@ func (app *TApplicationMock) GetImagesDir() string {
 func (app *TApplicationMock) Init(routes *map[string]router.TRoutesList) error {
 	args := app.Called()
 	if len(app.GetImagesDir()) < 1 {
-		log.Fatalln("Cannot read images directory path")
+		panic(errors.New("Cannot read images directory path"))
 	}
 
-	err := app.router.Configure()
+	err := app.router.Configure(
+		strings.Fields(app.GetConfigValue("TRUSTED_PROXIES")),
+		strings.Fields(app.GetConfigValue("CORS_ALLOWED_HEADERS")),
+		app.GetConfigValue("CORS_ALLOW_ALL_ORIGINS") == "true",
+	)
 	if err != nil {
 		return err
 	}
 	app.router.InitRoutes(routes)
 	return args.Error(0)
+}
+func (app *TApplicationMock) GetRouter() router.AppRouter {
+	args := app.Called()
+	return args.Get(0).(router.AppRouter)
 }

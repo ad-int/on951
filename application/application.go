@@ -26,7 +26,7 @@ const MsgInvalidIssuer = "invalid issuer"
 const ImagesDirectory = "images"
 
 type IApplicationRepository interface {
-	GetApplication() *TApplication
+	GetApplication() IApplication
 	Bootstrap(routesList *map[string]router.TRoutesList, userFuncs ...func())
 }
 
@@ -97,7 +97,7 @@ func (app *TApplication) ReadEnvFile() bool {
 	app.config, err = godotenv.Read(".env")
 	if err != nil {
 		log.Println(err)
-		log.Fatalln("Unable to read .env file!")
+		panic(errors.New("Unable to read .env file!"))
 		return false
 	}
 	return true
@@ -118,11 +118,15 @@ func (app *TApplication) InitDb() bool {
 func (app *TApplication) Init(routes *map[string]router.TRoutesList) error {
 
 	if len(app.GetImagesDir()) < 1 {
-		log.Fatalln("Cannot read images directory path")
+		panic(errors.New("Cannot read images directory path"))
 	}
 	log.Println(app.GetImagesDir())
 
-	err := app.router.Configure()
+	err := app.router.Configure(
+		strings.Fields(app.GetConfigValue("TRUSTED_PROXIES")),
+		strings.Fields(app.GetConfigValue("CORS_ALLOWED_HEADERS")),
+		app.GetConfigValue("CORS_ALLOW_ALL_ORIGINS") == "true",
+	)
 	if err != nil {
 		return err
 	}

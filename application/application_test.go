@@ -1,7 +1,6 @@
 package application
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
 	"log"
 	"on951/api"
@@ -15,7 +14,7 @@ const fakeImagesDir = "path/fake-images-dir"
 type applicationTestSuite struct {
 	suite.Suite
 	config       map[string]string
-	router       router.TAppRouter
+	router       router.TAppRouterMock
 	articlesRepo *api.TArticlesRepository
 }
 
@@ -23,50 +22,56 @@ func TestApplicationTestSuite(t *testing.T) {
 	suite.Run(t, new(applicationTestSuite))
 }
 
-func (suite *applicationTestSuite) TestApplication() {
+func (suite *applicationTestSuite) TestGetApplication() {
 	suite.IsType(&TApplication{}, GetApplication())
 }
 
 func (suite *applicationTestSuite) TestApplicationBootstrap() {
 
-	app := &TApplicationMock{}
+	for _, testCase := range testApplicationData {
 
-	app.On("ReadEnvFile").Return(true)
-	app.On("GetImagesDir").Return(fakeImagesDir)
-	app.On("Init").Return(nil)
-	appRepo := &TApplicationRepository{application: app}
-	log.Println(reflect.TypeOf(appRepo.GetApplication()))
-	routesList := &map[string]router.TRoutesList{
-		"GET": {
-			"health-check": {
-				Name: "Health Check",
-				Handler: func(context *gin.Context) {
+		app := &TApplicationMock{}
 
-				},
-			},
-		},
-		"PUT": {
-			"comment/:article_id": {
-				Name: "Post a comment",
-				Handler: func(context *gin.Context) {
+		app.config = testCase.config
+		app.On("ReadEnvFile").Return(len(app.config) > 0)
+		app.On("GetImagesDir").Return(testCase.imagesDir)
+		app.On("GetRouter").Return(&app.router)
 
-				},
-			},
-		},
-	}
-	appRepo.Bootstrap(routesList)
-	routesFound := 0
-	suite.IsType(&TApplicationMock{}, appRepo.GetApplication())
+		app.On("Init").Return(nil)
+		appRepo := &TApplicationRepository{application: app}
+		log.Println(reflect.TypeOf(appRepo.GetApplication().GetRouter()))
 
-	for method, routeDescription := range *routesList {
-		for path, _ := range *routeDescription {
-			for _, h := range appRepo.GetApplication().GetRouter().GetEngine().Routes() {
-				if h.Method == method && h.Path == "/"+path {
-					routesFound++
+		suite.IsType(&TApplicationMock{}, appRepo.GetApplication())
+		suite.Equal(testCase.imagesDir, appRepo.GetApplication().GetImagesDir())
+
+		if len(testCase.imagesDir) == 0 {
+			suite.PanicsWithError("Cannot read images directory path", func() {
+				appRepo.Bootstrap(&testCase.routes)
+
+			})
+			continue
+		} else if testCase.configurationFails {
+			suite.Panics(func() {
+				appRepo.Bootstrap(&testCase.routes)
+			})
+			continue
+		} else {
+			appRepo.Bootstrap(&testCase.routes)
+
+		}
+
+		routesFound := 0
+
+		for method, routeDescription := range testCase.routes {
+			for path, _ := range *routeDescription {
+				for _, h := range appRepo.GetApplication().GetRouter().GetEngine().Routes() {
+					if h.Method == method && h.Path == "/"+path {
+						routesFound++
+						suite.T().Logf("Added route: %v %v\n", method, path)
+					}
 				}
 			}
 		}
+		suite.Equal(len(appRepo.GetApplication().GetRouter().GetEngine().Routes()), routesFound)
 	}
-	suite.Equal(fakeImagesDir, appRepo.GetApplication().GetImagesDir())
-	suite.Equal(len(appRepo.GetApplication().GetRouter().GetEngine().Routes()), routesFound)
 }
