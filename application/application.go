@@ -38,6 +38,7 @@ type IApplication interface {
 	ReadEnvFile() bool
 	Init(routes *map[string]router.TRoutesList) error
 	GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error)
+	SetArticlesRepo(repository *api.TArticlesRepository)
 	GetArticlesRepo() *api.TArticlesRepository
 	GetRouter() router.AppRouter
 }
@@ -71,6 +72,10 @@ func GetApplication() IApplication {
 	return applicationRepository.GetApplication()
 }
 
+func SetApplication(app IApplication) {
+	applicationRepository.application = app
+}
+
 func (applicationRepository *TApplicationRepository) Bootstrap(routesList *map[string]router.TRoutesList, userFuncs ...func()) {
 	appInstance := applicationRepository.GetApplication()
 	appInstance.ReadEnvFile()
@@ -86,6 +91,10 @@ func (applicationRepository *TApplicationRepository) Bootstrap(routesList *map[s
 
 func (app *TApplication) GetArticlesRepo() *api.TArticlesRepository {
 	return app.articlesRepo
+}
+
+func (app *TApplication) SetArticlesRepo(repository *api.TArticlesRepository) {
+	app.articlesRepo = repository
 }
 
 func (app *TApplication) GetConfigValue(key string) string {
