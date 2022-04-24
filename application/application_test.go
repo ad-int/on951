@@ -31,9 +31,10 @@ func (suite *applicationTestSuite) TestApplicationBootstrap() {
 	for _, testCase := range testApplicationData {
 
 		app := &TApplicationMock{}
-
-		app.config = testCase.config
-		app.On("ReadEnvFile").Return(len(app.config) > 0)
+		app.On("ReadEnvFile").Return(len(app.config) > 0, testCase.config)
+		app.On("GetConfigValue", "TRUSTED_PROXIES").Return(testCase.config["TRUSTED_PROXIES"])
+		app.On("GetConfigValue", "CORS_ALLOWED_HEADERS").Return(testCase.config["CORS_ALLOWED_HEADERS"])
+		app.On("GetConfigValue", "CORS_ALLOW_ALL_ORIGINS").Return(testCase.config["CORS_ALLOW_ALL_ORIGINS"])
 		app.On("GetImagesDir").Return(testCase.imagesDir)
 		app.On("GetRouter").Return(&app.router)
 

@@ -3,7 +3,6 @@ package application
 import (
 	"errors"
 	"github.com/stretchr/testify/mock"
-	"log"
 	"on951/router"
 	"strings"
 )
@@ -13,14 +12,19 @@ type TApplicationMock struct {
 	TApplication
 }
 
-func (app *TApplicationMock) ReadEnvFile() bool {
+func (app *TApplicationMock) ReadEnvFile() (bool, map[string]string) {
 	args := app.Called()
-	log.Println(app.config)
-	return args.Bool(0)
+	app.config = args.Get(1).(map[string]string)
+	return args.Bool(0), args.Get(1).(map[string]string)
 }
 
 func (app *TApplicationMock) GetImagesDir() string {
 	args := app.Called()
+	return args.String(0)
+}
+
+func (app *TApplicationMock) GetConfigValue(key string) string {
+	args := app.Called(key)
 	return args.String(0)
 }
 

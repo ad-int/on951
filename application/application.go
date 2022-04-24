@@ -35,7 +35,7 @@ type IApplication interface {
 	GetImagesDir() string
 	InitImagesDir() string
 	InitDb() bool
-	ReadEnvFile() bool
+	ReadEnvFile() (bool, map[string]string)
 	Init(routes *map[string]router.TRoutesList) error
 	GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error)
 	SetArticlesRepo(repository *api.TArticlesRepository)
@@ -101,15 +101,15 @@ func (app *TApplication) GetConfigValue(key string) string {
 	return app.config[key]
 }
 
-func (app *TApplication) ReadEnvFile() bool {
+func (app *TApplication) ReadEnvFile() (bool, map[string]string) {
 	var err error
 	app.config, err = godotenv.Read(".env")
 	if err != nil {
 		log.Println(err)
 		panic(errors.New("Unable to read .env file!"))
-		return false
+		return false, nil
 	}
-	return true
+	return true, app.config
 }
 
 func (app *TApplication) InitDb() bool {
@@ -146,6 +146,7 @@ func (app *TApplication) Init(routes *map[string]router.TRoutesList) error {
 
 func (app *TApplication) GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error) {
 
+	log.Println(authHeader)
 	if authHeader == "" {
 		return dbStructure.User{}, errors.New(MsgUnauthorized)
 	}
@@ -158,7 +159,7 @@ func (app *TApplication) GetAuthorizedUserFromHeader(authHeader string) (dbStruc
 		return dbStructure.User{}, errors.New(MsgInvalidAuthorizationToken)
 	}
 
-	claim, err := jwt.HMACCheck([]byte(authHeaderParts[1]), []byte(app.GetConfigValue("SECRET")))
+	claim, err := jwt.HMACCheck([]byte(authHeaderParts[1]), []byte(GetApplication().GetConfigValue("SECRET")))
 	if err != nil {
 		return dbStructure.User{}, err
 	}
@@ -166,11 +167,11 @@ func (app *TApplication) GetAuthorizedUserFromHeader(authHeader string) (dbStruc
 		return dbStructure.User{}, errors.New(MsgUnauthorized)
 	}
 
-	if !claim.AcceptAudience(app.GetConfigValue("AUDIENCE")) {
+	if !claim.AcceptAudience(GetApplication().GetConfigValue("AUDIENCE")) {
 		return dbStructure.User{}, errors.New(MsgNotAcceptedAudience)
 	}
 
-	if claim.Issuer != app.GetConfigValue("ISSUER") {
+	if claim.Issuer != GetApplication().GetConfigValue("ISSUER") {
 		return dbStructure.User{}, errors.New(MsgInvalidIssuer)
 	}
 	var user dbStructure.User
