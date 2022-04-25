@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"on951/api"
+	"on951/database"
 	"reflect"
 	"testing"
 )
@@ -62,12 +63,49 @@ func (suite *applicationTestSuite) TestReadEnvFile() {
 	suite.Equal(map[string]string{"TEST1": "value1", "TEST2": "value2"}, config)
 }
 
+func (suite *applicationTestSuite) TestInitDb() {
+	dbMock := &database.TDatabaseMock{}
+	dbMock.On("GetConfigValue", "DSN").Return("")
+	dbMock.On("ConnectToDB", "").Return(true)
+	app := &TApplication{db: dbMock}
+	suite.True(app.InitDb())
+}
+
+func (suite *applicationTestSuite) TestInitDbFailsWithPanic() {
+	dbMock := &database.TDatabaseMock{}
+	dbMock.On("GetConfigValue", "DSN").Return("invalid-dsn")
+	dbMock.On("ConnectToDB", "invalid-dsn").Return(false)
+
+	app := &TApplicationMock{db: dbMock}
+	app.On("GetConfigValue", "DSN").Return("invalid-dsn")
+
+	suite.PanicsWithError("could not connect to DB", func() { app.InitDb() })
+
+}
+
+func (suite *applicationTestSuite) TestInitDbFails() {
+	dbMock := &database.TDatabaseMock{}
+	dbMock.On("GetConfigValue", "DSN").Return("connection-fails")
+	dbMock.On("ConnectToDB", "connection-fails").Return(false)
+
+	app := &TApplicationMock{db: dbMock}
+	app.On("GetConfigValue", "DSN").Return("connection-fails")
+
+	suite.PanicsWithError("could not connect to DB", func() { app.InitDb() })
+
+	suite.Nil(app.db.GetDB())
+
+}
+
 func (suite *applicationTestSuite) TestApplicationBootstrap() {
 
 	for _, testCase := range testApplicationData {
-
-		app := &TApplicationMock{}
+		dbMock := &database.TDatabaseMock{}
+		dbMock.On("GetConfigValue", "DSN").Return("")
+		dbMock.On("ConnectToDB", "").Return(true)
+		app := &TApplicationMock{db: dbMock}
 		app.On("ReadEnvFile").Return(len(app.config) > 0, testCase.config)
+		app.On("GetConfigValue", "DSN").Return("")
 		app.On("GetConfigValue", "TRUSTED_PROXIES").Return(testCase.config["TRUSTED_PROXIES"])
 		app.On("GetConfigValue", "CORS_ALLOWED_HEADERS").Return(testCase.config["CORS_ALLOWED_HEADERS"])
 		app.On("GetConfigValue", "CORS_ALLOW_ALL_ORIGINS").Return(testCase.config["CORS_ALLOW_ALL_ORIGINS"])

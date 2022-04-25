@@ -3,6 +3,8 @@ package application
 import (
 	"errors"
 	"github.com/stretchr/testify/mock"
+	"on951/api"
+	"on951/database"
 	"on951/router"
 	"strings"
 )
@@ -10,6 +12,7 @@ import (
 type TApplicationMock struct {
 	mock.Mock
 	TApplication
+	db database.IDatabase
 }
 
 func (app *TApplicationMock) ReadEnvFile() (bool, map[string]string) {
@@ -48,4 +51,17 @@ func (app *TApplicationMock) Init(routes *map[string]router.TRoutesList) error {
 func (app *TApplicationMock) GetRouter() router.AppRouter {
 	args := app.Called()
 	return args.Get(0).(router.AppRouter)
+}
+
+func (app *TApplicationMock) InitDb() bool {
+
+	connOk := app.db.ConnectToDB(app.GetConfigValue("DSN"))
+	if !connOk {
+		panic(errors.New("could not connect to DB"))
+	}
+	app.SetArticlesRepo(&api.TArticlesRepository{
+		IDatabase: app.db,
+	})
+	app.GetArticlesRepo().AutoMigrate()
+	return connOk
 }

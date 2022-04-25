@@ -33,6 +33,10 @@ func (db *TDatabaseMock) ConnectToDB(dsn string) bool {
 	if db.Db != nil {
 		return db.Db.Error == nil
 	}
+
+	if dsn == "connection-fails" {
+		return false
+	}
 	if dsn == "invalid-dsn" {
 		panic(errors.New(DbConnectionError))
 	}
@@ -45,7 +49,6 @@ func (db *TDatabaseMock) ConnectToDB(dsn string) bool {
 
 	if err != nil {
 		panic(err)
-		return false
 	}
 	return args.Bool(0)
 

@@ -51,6 +51,7 @@ type TApplicationRepository struct {
 
 type TApplication struct {
 	config         map[string]string
+	db             database.IDatabase
 	router         router.TAppRouter
 	articlesRepo   *api.TArticlesRepository
 	ConfigFilePath string
@@ -58,7 +59,7 @@ type TApplication struct {
 
 func (applicationRepository *TApplicationRepository) GetApplication() IApplication {
 	if applicationRepository.application == nil {
-		applicationRepository.application = &TApplication{ConfigFilePath: ".env"}
+		applicationRepository.application = &TApplication{ConfigFilePath: ".env", db: &database.TDatabase{}}
 	}
 	return applicationRepository.application
 }
@@ -105,20 +106,19 @@ func (app *TApplication) ReadEnvFile() (bool, map[string]string) {
 	if err != nil {
 		log.Println(err)
 		panic(errors.New("Unable to read .env file!"))
-		return false, nil
 	}
 	return true, app.config
 }
 
 func (app *TApplication) InitDb() bool {
-	db := &database.TDatabase{}
-	connOk := db.ConnectToDB(app.GetConfigValue("DSN"))
+
+	connOk := app.db.ConnectToDB(app.GetConfigValue("DSN"))
 	if !connOk {
-		log.Fatalln("error connecting to db")
+		panic(errors.New("could not connect to DB"))
 	}
-	app.articlesRepo = &api.TArticlesRepository{
-		IDatabase: db,
-	}
+	app.SetArticlesRepo(&api.TArticlesRepository{
+		IDatabase: app.db,
+	})
 	app.GetArticlesRepo().AutoMigrate()
 	return connOk
 }
