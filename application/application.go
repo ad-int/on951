@@ -50,22 +50,20 @@ type TApplicationRepository struct {
 }
 
 type TApplication struct {
-	config       map[string]string
-	router       router.TAppRouter
-	articlesRepo *api.TArticlesRepository
+	config         map[string]string
+	router         router.TAppRouter
+	articlesRepo   *api.TArticlesRepository
+	ConfigFilePath string
 }
 
 func (applicationRepository *TApplicationRepository) GetApplication() IApplication {
 	if applicationRepository.application == nil {
-		applicationRepository.application = &TApplication{}
+		applicationRepository.application = &TApplication{ConfigFilePath: ".env"}
 	}
 	return applicationRepository.application
 }
 
 func GetApplicationRepository() *TApplicationRepository {
-	if applicationRepository == nil {
-		applicationRepository = &TApplicationRepository{}
-	}
 	return applicationRepository
 }
 func GetApplication() IApplication {
@@ -103,7 +101,7 @@ func (app *TApplication) GetConfigValue(key string) string {
 
 func (app *TApplication) ReadEnvFile() (bool, map[string]string) {
 	var err error
-	app.config, err = godotenv.Read(".env")
+	app.config, err = godotenv.Read(app.ConfigFilePath)
 	if err != nil {
 		log.Println(err)
 		panic(errors.New("Unable to read .env file!"))

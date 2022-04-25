@@ -2,9 +2,9 @@ package application
 
 import (
 	"github.com/stretchr/testify/suite"
+	"io/ioutil"
 	"log"
 	"on951/api"
-	"on951/router"
 	"reflect"
 	"testing"
 )
@@ -14,7 +14,6 @@ const fakeImagesDir = "path/fake-images-dir"
 type applicationTestSuite struct {
 	suite.Suite
 	config       map[string]string
-	router       router.TAppRouterMock
 	articlesRepo *api.TArticlesRepository
 }
 
@@ -24,6 +23,43 @@ func TestApplicationTestSuite(t *testing.T) {
 
 func (suite *applicationTestSuite) TestGetApplication() {
 	suite.IsType(&TApplication{}, GetApplication())
+}
+
+func (suite *applicationTestSuite) TestSetApplication() {
+
+	suite.IsType(&TApplication{}, GetApplicationRepository().GetApplication())
+
+	SetApplication(&TApplicationMock{})
+	suite.IsType(&TApplicationMock{}, GetApplicationRepository().GetApplication())
+}
+
+func (suite *applicationTestSuite) TestSetArticlesRepo() {
+
+	app := &TApplication{}
+	app.SetArticlesRepo(suite.articlesRepo)
+
+	suite.Same(suite.articlesRepo, app.GetArticlesRepo())
+}
+
+func (suite *applicationTestSuite) TestReadEnvFile() {
+
+	var read bool
+	var config map[string]string
+
+	app := &TApplication{ConfigFilePath: "fdfedgdf"}
+
+	suite.Panics(func() {
+		_, _ = app.ReadEnvFile()
+	})
+	suite.False(read)
+	f, err := ioutil.TempFile("", "config-test")
+	suite.Nil(err)
+	_, _ = f.WriteString(`TEST1="value1"` + "\n" + `TEST2="value2"`)
+	app = &TApplication{ConfigFilePath: f.Name()}
+	read, config = app.ReadEnvFile()
+	_ = f.Close()
+	suite.True(read)
+	suite.Equal(map[string]string{"TEST1": "value1", "TEST2": "value2"}, config)
 }
 
 func (suite *applicationTestSuite) TestApplicationBootstrap() {
@@ -45,6 +81,7 @@ func (suite *applicationTestSuite) TestApplicationBootstrap() {
 		suite.IsType(&TApplicationMock{}, appRepo.GetApplication())
 		suite.Equal(testCase.imagesDir, appRepo.GetApplication().GetImagesDir())
 
+		testFuncInsideBootstrap := ""
 		if len(testCase.imagesDir) == 0 {
 			suite.PanicsWithError("Cannot read images directory path", func() {
 				appRepo.Bootstrap(&testCase.routes)
@@ -57,12 +94,12 @@ func (suite *applicationTestSuite) TestApplicationBootstrap() {
 			})
 			continue
 		} else {
-			appRepo.Bootstrap(&testCase.routes)
+			appRepo.Bootstrap(&testCase.routes, func() { testFuncInsideBootstrap = "test" })
 
 		}
 
 		routesFound := 0
-
+		suite.Equal("test", testFuncInsideBootstrap)
 		for method, routeDescription := range testCase.routes {
 			for path, _ := range *routeDescription {
 				for _, h := range appRepo.GetApplication().GetRouter().GetEngine().Routes() {
