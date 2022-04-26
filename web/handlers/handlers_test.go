@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
+	"io/ioutil"
 	"net/http/httptest"
 	"on951/api"
 	"on951/application"
 	"on951/database"
 	dbStructure "on951/database/structure"
+	"on951/image_links_parser"
+	"os"
 	"strconv"
 	"testing"
 )
@@ -38,6 +41,24 @@ func (suite *handlersTestSuite) prepare(handlerFunc func(ctx *gin.Context), test
 	for i := 1; i <= testCase.totalArticlesInDb; i++ {
 		record := dbStructure.ArticleBriefInfo{Title: "article " + strconv.Itoa(i)}
 		suite.db.GetDB().Table(dbStructure.TableArticles).Create(&record)
+		for j := 1; j <= testCase.commentsPerArticle; j++ {
+			commentText := "Comment " + strconv.Itoa(j)
+			if testCase.commentsToInsert[j] != nil {
+				commentText = testCase.commentsToInsert[j].Content
+			}
+			tempDir, err := ioutil.TempDir(os.TempDir(), "*")
+			suite.Nil(err, "creating temp images dir")
+			commentText, areImageLinksProcessed := image_links_parser.Process(commentText, tempDir, application.ImagesDirectory)
+			comment := dbStructure.Comment{
+
+				Content:   commentText,
+				ArticleId: record.Id,
+				UserId:    1,
+			}
+
+			suite.db.GetDB().Create(&comment)
+			suite.True(areImageLinksProcessed)
+		}
 	}
 
 	app := &application.TApplicationMock{}

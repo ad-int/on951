@@ -3,8 +3,10 @@ package image_links_parser
 import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"io/ioutil"
 	"on951/application"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 )
@@ -40,8 +42,10 @@ func (suite *imageLinksParserTestSuite) TestGetImageFileName() {
 func (suite *imageLinksParserTestSuite) TestSaveImage() {
 	for _, testCase := range testImagesData {
 		isValid := false
+		tempDir, err := ioutil.TempDir(os.TempDir(), "*")
+		suite.Nil(err, "creating temp images dir")
 		if testCase.valid {
-			isValid = saveImage("test-"+testCase.fileName+testCase.extension, testCase.mimyType, testCase.encoding, testCase.encodedImage)
+			isValid = saveImage(filepath.Join(tempDir, testCase.fileName+testCase.extension), testCase.mimyType, testCase.encoding, testCase.encodedImage)
 		}
 		suite.Equal(testCase.valid, isValid)
 	}
@@ -61,12 +65,14 @@ func (suite *imageLinksParserTestSuite) TestValidateImage() {
 
 func (suite *imageLinksParserTestSuite) TestGetAllValidImages() {
 	for _, testCase := range testCommentsData {
-		suite.Equal(testCase.images, grabAllValidImages(testCase.text))
+		tempDir, err := ioutil.TempDir(os.TempDir(), "*")
+		suite.Nil(err, "creating temp images dir")
+		suite.Equal(testCase.images, grabAllValidImages(testCase.text, tempDir))
 	}
 }
 func (suite *imageLinksParserTestSuite) TestUpdateImageLinks() {
 	for _, testCase := range testCommentsWithFixedLinksData {
-		suite.Equal(testCase.textAfter, updateImageLinks(testCase.textBefore, testCase.images))
+		suite.Equal(testCase.textAfter, updateImageLinks(testCase.textBefore, testCase.images, "images"))
 	}
 }
 

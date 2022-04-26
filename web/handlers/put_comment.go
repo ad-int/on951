@@ -37,7 +37,7 @@ func PutComment(ctx *gin.Context) {
 	}
 	commentBodyStr := string(commentBody)
 	var areImageLinksProcessed bool
-	commentBodyStr, areImageLinksProcessed = image_links_parser.Process(commentBodyStr)
+	commentBodyStr, areImageLinksProcessed = image_links_parser.Process(commentBodyStr, application.ImagesDirectory, application.ImagesDirectory)
 	if !areImageLinksProcessed {
 		web.Write(ctx, http.StatusInsufficientStorage, models.Response{
 			Code: http.StatusInsufficientStorage,

@@ -13,7 +13,6 @@ import (
 	"io/ioutil"
 	"log"
 	"mime"
-	"on951/application"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -29,7 +28,7 @@ func getImageFileName(mimeType string, encoding string, encodedImage string) (st
 	return "", false
 }
 
-func grabAllValidImages(text string) map[string]string {
+func grabAllValidImages(text string, imagesDir string) map[string]string {
 	imgTagRegexp, err := regexp.Compile(`(?U)<img src="data:([\w/]+);([^"]+),([^"]+)".*>`)
 	var foundImages = make(map[string]string)
 	var index uint = 0
@@ -44,7 +43,7 @@ func grabAllValidImages(text string) map[string]string {
 
 		filename, isValid := getImageFileName(match[1], match[2], match[3])
 		if isValid {
-			if saveImage(filename, match[1], match[2], match[3]) {
+			if saveImage(filepath.Join(imagesDir, filename), match[1], match[2], match[3]) {
 				foundImages[filename] = match[0]
 			}
 		}
@@ -115,10 +114,13 @@ func decodeContent(encoding string, encodedContent string) []byte {
 
 	return decodedContent
 }
-func saveImage(filename string, mimeType string, encoding string, encodedImage string) bool {
+func saveImage(imagePath string, mimeType string, encoding string, encodedImage string) bool {
 
 	decodedImage := decodeContent(encoding, encodedImage)
-	err := ioutil.WriteFile(filepath.Join(application.GetApplication().InitImagesDir(), filename), decodedImage, fs.ModePerm)
+	if _, statErr := os.Stat(imagePath); os.IsExist(statErr) {
+		return true
+	}
+	err := ioutil.WriteFile(imagePath, decodedImage, fs.ModePerm)
 	if err != nil {
 		log.Println(err)
 		return false
@@ -126,16 +128,16 @@ func saveImage(filename string, mimeType string, encoding string, encodedImage s
 	return true
 }
 
-func updateImageLinks(text string, links map[string]string) string {
+func updateImageLinks(text string, links map[string]string, urlPrefix string) string {
 	for filename, imgTag := range links {
-		updatedImgTag := fmt.Sprintf("<img src=\"%v\" />", string(os.PathSeparator)+filepath.Join(application.ImagesDirectory, filename))
+		updatedImgTag := fmt.Sprintf("<img src=\"%v\" />", string(os.PathSeparator)+filepath.Join(urlPrefix, filename))
 		text = strings.Replace(text, imgTag, updatedImgTag, -1)
 	}
 	return text
 }
 
-func Process(text string) (string, bool) {
-	links := grabAllValidImages(text)
-	return updateImageLinks(text, links), true
+func Process(text string, imagesDir string, urlPrefix string) (string, bool) {
+	links := grabAllValidImages(text, imagesDir)
+	return updateImageLinks(text, links, urlPrefix), true
 
 }
