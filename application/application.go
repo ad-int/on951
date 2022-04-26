@@ -113,9 +113,6 @@ func (app *TApplication) ReadEnvFile() (bool, map[string]string) {
 func (app *TApplication) InitDb() bool {
 
 	connOk := app.db.ConnectToDB(app.GetConfigValue("DSN"))
-	if !connOk {
-		panic(errors.New("could not connect to DB"))
-	}
 	app.SetArticlesRepo(&api.TArticlesRepository{
 		IDatabase: app.db,
 	})
