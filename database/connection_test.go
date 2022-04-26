@@ -23,8 +23,10 @@ func TestConnectToDB(t *testing.T) {
 		application := App{TDatabaseMock: databaseMock}
 		if test.isConnectionEstablished {
 			connOk := application.ConnectToDB(test.dsn)
+			assert.Equal(t, "sqlite", application.GetDB().Dialector.Name())
 			application.DisconnectDB()
 			assert.Equal(t, test.isConnectionEstablished, connOk)
+			assert.Nil(t, application.GetDB())
 		} else {
 			assert.PanicsWithError(t, DbConnectionError, func() { application.ConnectToDB(test.dsn) })
 		}
@@ -34,8 +36,7 @@ func TestConnectToDB(t *testing.T) {
 }
 func getTestsDataForConnectToDB() []TestCase {
 	return []TestCase{
-		{dsn: "test.db", isConnectionEstablished: true},
+		{dsn: "will-connect-to-valid-in-memory-db", isConnectionEstablished: true},
 		{dsn: "invalid-dsn", isConnectionEstablished: false},
-		{dsn: "invalid-driver", isConnectionEstablished: false},
 	}
 }

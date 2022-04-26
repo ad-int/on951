@@ -83,20 +83,6 @@ func (suite *applicationTestSuite) TestInitDbFailsWithPanic() {
 
 }
 
-func (suite *applicationTestSuite) TestInitDbFails() {
-	dbMock := &database.TDatabaseMock{}
-	dbMock.On("GetConfigValue", "DSN").Return("connection-fails")
-	dbMock.On("ConnectToDB", "connection-fails").Return(false)
-
-	app := &TApplicationMock{db: dbMock}
-	app.On("GetConfigValue", "DSN").Return("connection-fails")
-
-	suite.PanicsWithError("could not connect to DB", func() { app.InitDb() })
-
-	suite.Nil(app.db.GetDB())
-
-}
-
 func (suite *applicationTestSuite) TestApplicationBootstrap() {
 
 	for _, testCase := range testApplicationData {

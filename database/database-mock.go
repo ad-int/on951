@@ -34,18 +34,10 @@ func (db *TDatabaseMock) ConnectToDB(dsn string) bool {
 		return db.Db.Error == nil
 	}
 
-	if dsn == "connection-fails" {
-		return false
-	}
 	if dsn == "invalid-dsn" {
 		panic(errors.New(DbConnectionError))
 	}
-
-	if dsn == "invalid-driver" {
-		db.Db, err = gorm.Open(DummyDialector{}, &db.Config)
-	} else {
-		db.Db, err = gorm.Open(sqlite.Open(""), &db.Config)
-	}
+	db.Db, err = gorm.Open(sqlite.Open("file:mem-db?mode=memory"), &db.Config)
 
 	if err != nil {
 		panic(err)
