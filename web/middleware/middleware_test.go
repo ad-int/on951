@@ -75,3 +75,38 @@ func (suite *middlewareTestSuite) TestApiAuthCheck() {
 	ApiAuthCheck(context)
 	suite.NotEqual(context.Writer.Status(), http.StatusUnauthorized)
 }
+
+func (suite *middlewareTestSuite) TestApiAuthCheckThatFails() {
+
+	app := &application.TApplicationMock{}
+
+	app.On("GetConfigValue", "AUDIENCE").Return("general")
+	app.On("GetConfigValue", "ISSUER").Return("localhost")
+	app.On("GetConfigValue", "SECRET").Return("234")
+
+	application.SetApplication(app)
+	handlers.GetToken(suite.context)
+
+	token := suite.recorder.Body.String()
+
+	context, _ := gin.CreateTestContext(httptest.NewRecorder())
+	context.Request = &http.Request{
+		Method: "GET",
+		URL: &url.URL{
+			Scheme:      "",
+			Opaque:      "",
+			User:        nil,
+			Host:        "",
+			Path:        "",
+			RawPath:     "",
+			ForceQuery:  false,
+			RawQuery:    "",
+			Fragment:    "",
+			RawFragment: "",
+		},
+	}
+	context.Request.Header = http.Header{}
+	context.Request.Header.Set("Authorization", "Bearer "+token+"fail!!!")
+	ApiAuthCheck(context)
+	suite.Equal(context.Writer.Status(), http.StatusUnauthorized)
+}
