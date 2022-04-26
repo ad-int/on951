@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
 	"net/http"
@@ -9,6 +10,14 @@ import (
 	"on951/models"
 	"testing"
 )
+
+type ResponseRecorderThatFails struct {
+	httptest.ResponseRecorder
+}
+
+func (rc *ResponseRecorderThatFails) Write(p []byte) (n int, err error) {
+	return 0, errors.New("Failed!")
+}
 
 type writerTestSuite struct {
 	suite.Suite
@@ -28,6 +37,12 @@ func TestWriterTestSuite(t *testing.T) {
 func (suite *writerTestSuite) TestWriteNewLine() {
 	writeNewLine(suite.context)
 	suite.Equal("\r\n", suite.recorder.Body.String())
+}
+
+func (suite *writerTestSuite) TestWriteNewLineFails() {
+	context, _ := gin.CreateTestContext(&ResponseRecorderThatFails{})
+	writeNewLine(context)
+	suite.Empty(suite.recorder.Body.String())
 }
 
 func (suite *writerTestSuite) TestWriteBadRequestError() {
