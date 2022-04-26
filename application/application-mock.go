@@ -56,9 +56,6 @@ func (app *TApplicationMock) GetRouter() router.AppRouter {
 func (app *TApplicationMock) InitDb() bool {
 
 	connOk := app.db.ConnectToDB(app.GetConfigValue("DSN"))
-	if !connOk {
-		panic(errors.New("could not connect to DB"))
-	}
 	app.SetArticlesRepo(&api.TArticlesRepository{
 		IDatabase: app.db,
 	})
