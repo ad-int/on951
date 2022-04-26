@@ -33,9 +33,7 @@ func WriteMessage(ctx *gin.Context, code int, message string) {
 	log.Println(message)
 	writeNewLine(ctx)
 }
-func WriteSuccessMessage(ctx *gin.Context, message string) {
-	WriteMessage(ctx, http.StatusOK, message)
-}
+
 func WriteSuccessfullyCreatedMessage(ctx *gin.Context, message string) {
 	ctx.IndentedJSON(http.StatusCreated, &models.Response{
 		Code: http.StatusCreated,
