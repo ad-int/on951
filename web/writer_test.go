@@ -31,7 +31,7 @@ func (suite *writerTestSuite) TestWriteNewLine() {
 }
 
 func (suite *writerTestSuite) TestWriteBadRequestError() {
-	WriteBadRequestError(suite.context, "blah")
+	WriteBadRequestError(suite.context, "blah", nil)
 	jsonBytes, err := json.MarshalIndent(models.Response{Code: http.StatusBadRequest, Body: "blah"}, "", "    ")
 	suite.Nil(err)
 	suite.Equal(http.StatusBadRequest, suite.recorder.Code)
