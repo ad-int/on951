@@ -22,6 +22,7 @@ const MsgNotAcceptedAudience = "not accepted audience"
 const MsgNoAuthorizationToken = "missing authorization token"
 const MsgInvalidAuthorizationToken = "invalid authorization token"
 const MsgInvalidIssuer = "invalid issuer"
+const MsgCannotReadImagesDirectory = "cannot read images directory path"
 
 const ImagesDirectory = "images"
 
@@ -55,11 +56,12 @@ type TApplication struct {
 	router         router.TAppRouter
 	articlesRepo   *api.TArticlesRepository
 	ConfigFilePath string
+	ImagesDir      string
 }
 
 func (applicationRepository *TApplicationRepository) GetApplication() IApplication {
 	if applicationRepository.application == nil {
-		applicationRepository.application = &TApplication{ConfigFilePath: ".env", db: &database.TDatabase{}}
+		applicationRepository.application = &TApplication{ConfigFilePath: ".env", ImagesDir: ImagesDirectory, db: &database.TDatabase{}}
 	}
 	return applicationRepository.application
 }
@@ -122,7 +124,7 @@ func (app *TApplication) InitDb() bool {
 func (app *TApplication) Init(routes *map[string]router.TRoutesList) error {
 
 	if len(app.GetImagesDir()) < 1 {
-		panic(errors.New("Cannot read images directory path"))
+		panic(errors.New(MsgCannotReadImagesDirectory))
 	}
 	log.Println(app.GetImagesDir())
 
@@ -181,7 +183,7 @@ func (app *TApplication) GetImagesDir() string {
 		log.Println(err)
 		return ""
 	}
-	iDir := filepath.Join(dir, ImagesDirectory)
+	iDir := filepath.Join(dir, app.ImagesDir)
 	fi, err := os.Stat(iDir)
 	if err != nil {
 		log.Println(err)
@@ -198,7 +200,7 @@ func (app *TApplication) InitImagesDir() string {
 		log.Println(err)
 		return ""
 	}
-	iDir := filepath.Join(dir, ImagesDirectory)
+	iDir := filepath.Join(dir, app.ImagesDir)
 	err = os.Mkdir(iDir, fs.ModeDir)
 	fi, err := os.Stat(iDir)
 	if err != nil {

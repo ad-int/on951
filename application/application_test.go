@@ -6,6 +6,7 @@ import (
 	"log"
 	"on951/api"
 	"on951/database"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -71,6 +72,17 @@ func (suite *applicationTestSuite) TestInitDb() {
 	suite.True(app.InitDb())
 }
 
+func (suite *applicationTestSuite) TestInit() {
+	dbMock := &database.TDatabaseMock{}
+	dbMock.On("GetConfigValue", "DSN").Return("")
+	dbMock.On("ConnectToDB", "").Return(true)
+	app := &TApplicationMock{db: dbMock}
+	app.On("Init", &testApplicationData[0].routes).Panic(MsgCannotReadImagesDirectory)
+	suite.PanicsWithValue(MsgCannotReadImagesDirectory, func() {
+		_ = app.Init(&testApplicationData[0].routes)
+	})
+}
+
 func (suite *applicationTestSuite) TestInitDbFailsWithPanic() {
 	dbMock := &database.TDatabaseMock{}
 	dbMock.On("GetConfigValue", "DSN").Return("invalid-dsn")
@@ -78,9 +90,8 @@ func (suite *applicationTestSuite) TestInitDbFailsWithPanic() {
 
 	app := &TApplicationMock{db: dbMock}
 	app.On("GetConfigValue", "DSN").Return("invalid-dsn")
-
-	suite.PanicsWithError("could not connect to DB", func() { app.InitDb() })
-
+	app.On("InitDb").Panic("could not connect to DB")
+	suite.PanicsWithValue("could not connect to DB", func() { app.InitDb() })
 }
 
 func (suite *applicationTestSuite) TestApplicationBootstrap() {
@@ -89,15 +100,24 @@ func (suite *applicationTestSuite) TestApplicationBootstrap() {
 		dbMock := &database.TDatabaseMock{}
 		dbMock.On("GetConfigValue", "DSN").Return("")
 		dbMock.On("ConnectToDB", "").Return(true)
-		app := &TApplicationMock{db: dbMock}
+		var err error
+		imagesTmpDir := testCase.imagesDir
+		if len(testCase.imagesDir) > 0 {
+			imagesTmpDir, err = ioutil.TempDir(os.TempDir(), testCase.imagesDir)
+			suite.Nil(err, "Creating images temp dir")
+			log.Println(imagesTmpDir)
+		}
+		app := &TApplicationMock{db: dbMock, ImagesDir: imagesTmpDir}
+
 		app.On("ReadEnvFile").Return(len(app.config) > 0, testCase.config)
 		app.On("GetConfigValue", "DSN").Return("")
 		app.On("GetConfigValue", "TRUSTED_PROXIES").Return(testCase.config["TRUSTED_PROXIES"])
 		app.On("GetConfigValue", "CORS_ALLOWED_HEADERS").Return(testCase.config["CORS_ALLOWED_HEADERS"])
 		app.On("GetConfigValue", "CORS_ALLOW_ALL_ORIGINS").Return(testCase.config["CORS_ALLOW_ALL_ORIGINS"])
 		app.On("GetImagesDir").Return(testCase.imagesDir)
+		app.On("Init", &testCase.routes).Return(nil)
+		app.On("InitDb").Return(true)
 		app.On("GetRouter").Return(&app.router)
-
 		app.On("Init").Return(nil)
 		appRepo := &TApplicationRepository{application: app}
 		log.Println(reflect.TypeOf(appRepo.GetApplication().GetRouter()))
@@ -107,7 +127,7 @@ func (suite *applicationTestSuite) TestApplicationBootstrap() {
 
 		testFuncInsideBootstrap := ""
 		if len(testCase.imagesDir) == 0 {
-			suite.PanicsWithError("Cannot read images directory path", func() {
+			suite.PanicsWithError(MsgCannotReadImagesDirectory, func() {
 				appRepo.Bootstrap(&testCase.routes)
 
 			})

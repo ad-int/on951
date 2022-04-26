@@ -21,7 +21,7 @@ var testApplicationData = []struct {
 			"CORS_ALLOWED_HEADERS":   "*",
 			"CORS_ALLOW_ALL_ORIGINS": "true",
 		},
-		imagesDir:          "path/fake-images-dir",
+		imagesDir:          "fake-images-dir",
 		configurationFails: false,
 		routes: map[string]router.TRoutesList{
 			"GET": {

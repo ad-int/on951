@@ -12,7 +12,8 @@ import (
 type TApplicationMock struct {
 	mock.Mock
 	TApplication
-	db database.IDatabase
+	db        database.IDatabase
+	ImagesDir string
 }
 
 func (app *TApplicationMock) ReadEnvFile() (bool, map[string]string) {
@@ -32,9 +33,9 @@ func (app *TApplicationMock) GetConfigValue(key string) string {
 }
 
 func (app *TApplicationMock) Init(routes *map[string]router.TRoutesList) error {
-	args := app.Called()
+	args := app.Called(routes)
 	if len(app.GetImagesDir()) < 1 {
-		panic(errors.New("Cannot read images directory path"))
+		panic(errors.New(MsgCannotReadImagesDirectory))
 	}
 
 	err := app.router.Configure(
@@ -54,7 +55,7 @@ func (app *TApplicationMock) GetRouter() router.AppRouter {
 }
 
 func (app *TApplicationMock) InitDb() bool {
-
+	_ = app.Called()
 	connOk := app.db.ConnectToDB(app.GetConfigValue("DSN"))
 	app.SetArticlesRepo(&api.TArticlesRepository{
 		IDatabase: app.db,
