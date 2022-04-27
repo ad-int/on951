@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"on951/database"
 	dbStructure "on951/database/structure"
 )
@@ -35,12 +36,16 @@ func (aRepo *TArticlesRepository) GetArticle(articleId int) (dbStructure.Article
 	tx := aRepo.GetDB().First(&article, articleId)
 	return article, tx.RowsAffected > 0
 }
-func (aRepo *TArticlesRepository) GetArticleWithComments(articleId int) (dbStructure.ArticleWithComments, bool) {
+func (aRepo *TArticlesRepository) GetArticleWithComments(articleId int, pageNo int, pageSize int) (dbStructure.ArticleWithComments, bool) {
 	var article dbStructure.ArticleWithComments
+	offset := 0
+	if pageNo >= 1 {
+		offset = (pageNo - 1) * pageSize
+	}
 	tx := aRepo.GetDB().
 		Debug().
 		Table(dbStructure.TableArticles).
-		Preload("Comments").
+		Preload("Comments", fmt.Sprintf("1 LIMIT %v OFFSET %v", pageSize, offset)).
 		First(&article, articleId)
 	return article, tx.RowsAffected > 0
 }

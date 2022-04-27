@@ -91,7 +91,7 @@ func (suite *repositoryTestSuite) TestPutComment() {
 	}
 
 	suite.db.GetDB().Create(&testComment)
-	article, found := suite.aRepo.GetArticleWithComments(999)
+	article, found := suite.aRepo.GetArticleWithComments(999, 1, 1)
 	suite.True(found, "Article found")
 	suite.Equal(testArticle, article, "Article data match")
 }
