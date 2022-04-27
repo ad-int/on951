@@ -40,3 +40,20 @@ func getTestsDataForConnectToDB() []TestCase {
 		{dsn: "invalid-dsn", isConnectionEstablished: false},
 	}
 }
+func TestConnectToMemoryDB(t *testing.T) {
+	db := &TDatabase{}
+	db.ConnectToDB("file:test-mem-db?mode=memory")
+	db.ConnectToDB("file:test-mem-db?mode=memory")
+	db.AutoMigrate()
+	assert.NotNil(t, db.GetDB())
+	db.DisconnectDB()
+	assert.Nil(t, db.GetDB())
+}
+
+func TestConnectToMemoryDBFailsBecauseOfInvalidMode(t *testing.T) {
+	db := &TDatabase{}
+	assert.Panics(t, func() {
+		db.ConnectToDB("file:test-mem-db?mode=sadaszxfddfreqr43eqs")
+	})
+
+}

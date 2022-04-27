@@ -35,6 +35,12 @@ var testRouterData = []struct {
 					Handler: func(context *gin.Context) {
 
 					},
+					Group: "/",
+					Middlewares: []gin.HandlerFunc{
+						func(context *gin.Context) {
+
+						},
+					},
 				},
 			},
 		},

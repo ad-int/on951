@@ -35,6 +35,20 @@ func (suite *applicationTestSuite) TestSetApplication() {
 	suite.IsType(&TApplicationMock{}, GetApplicationRepository().GetApplication())
 }
 
+func (suite *applicationTestSuite) TestSetDB() {
+
+	app := &TApplicationMock{}
+	app.SetDB(&database.TDatabaseMock{})
+
+	suite.IsType(&database.TDatabaseMock{}, app.GetDatabase())
+}
+
+func (suite *applicationTestSuite) TestGetDatabase() {
+
+	app := &TApplication{db: &database.TDatabase{}}
+	suite.IsType(&database.TDatabase{}, app.GetDatabase())
+}
+
 func (suite *applicationTestSuite) TestSetArticlesRepo() {
 
 	app := &TApplication{}
