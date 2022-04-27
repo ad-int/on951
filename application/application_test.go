@@ -128,6 +128,7 @@ func (suite *applicationTestSuite) TestInit() {
 	fakeRouter.On("Run").Return(nil)
 	app := &TApplication{db: dbMock, router: fakeRouter}
 	suite.Nil(app.Init(&testApplicationData[0].routes))
+	suite.IsType(&FakeRouter{}, app.GetRouter())
 }
 func (suite *applicationTestSuite) TestInitWithInvalidConfig() {
 
