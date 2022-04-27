@@ -23,7 +23,7 @@ func PutComment(ctx *gin.Context) {
 
 	db := application.GetApplication().GetArticlesRepo().GetDB()
 	var comment dbStructure.Comment
-	articleId, err := strconv.Atoi(strings.TrimSpace(ctx.Query("article_id")))
+	articleId, err := strconv.Atoi(strings.TrimSpace(ctx.Param("article_id")))
 
 	if err != nil {
 		web.WriteBadRequestError(ctx, "Article ID is missing", err)

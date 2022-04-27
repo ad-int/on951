@@ -14,7 +14,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 func run(m *testing.M) (int, error) {
-
 	defer func() {
 		log.Println("testing is done!")
 	}()
