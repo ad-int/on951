@@ -16,6 +16,15 @@ type TApplicationMock struct {
 	ImagesDir string
 }
 
+func (app *TApplicationMock) SetArticlesRepo(repository api.ArticlesRepository) {
+	app.articlesRepo = repository
+}
+func (app *TApplicationMock) SetDB(db database.IDatabase) {
+	app.db = db
+}
+func (app *TApplicationMock) GetDatabase() database.IDatabase {
+	return app.db
+}
 func (app *TApplicationMock) ReadEnvFile() (bool, map[string]string) {
 	args := app.Called()
 	app.config = args.Get(1).(map[string]string)
@@ -60,6 +69,6 @@ func (app *TApplicationMock) InitDb() bool {
 	app.SetArticlesRepo(&api.TArticlesRepository{
 		IDatabase: app.db,
 	})
-	app.GetArticlesRepo().AutoMigrate()
+	app.db.AutoMigrate()
 	return connOk
 }

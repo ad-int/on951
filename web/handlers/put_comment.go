@@ -21,7 +21,6 @@ func PutComment(ctx *gin.Context) {
 		return
 	}
 
-	db := application.GetApplication().GetArticlesRepo().GetDB()
 	var comment dbStructure.Comment
 	articleId, err := strconv.Atoi(strings.TrimSpace(ctx.Param("article_id")))
 
@@ -57,13 +56,9 @@ func PutComment(ctx *gin.Context) {
 	comment.UserId = authorizedUser.Id
 	comment.ArticleId = uint(articleId)
 	comment.Content = commentBodyStr
-	tx := db.Create(&comment)
-	if tx.Error != nil {
-		web.Write(ctx, http.StatusTooEarly, err)
-		return
-	}
-	if tx.RowsAffected < 1 {
-		ctx.Status(http.StatusTooEarly)
+	created := application.GetApplication().GetArticlesRepo().PutComment(&comment)
+	if !created {
+		web.WriteMessage(ctx, http.StatusTooEarly, "failed to insert your comment")
 		return
 	}
 	ctx.Header("Content-Location", "/comment/"+strconv.Itoa(int(comment.Id)))

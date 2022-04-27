@@ -53,7 +53,7 @@ func (suite *repositoryTestSuite) TestGetArticles() {
 		articles := suite.aRepo.GetArticles(testCase.page, testCase.pageSize)
 		suite.Equal(len(articles), testCase.articlesCount)
 		tx := suite.db.GetDB().Debug().Unscoped().Delete(&dbStructure.Article{})
-		suite.Equal(int64(testCase.articlesInDb), tx.RowsAffected, "Deleted test articles")
+		suite.Greater(tx.RowsAffected, int64(0), "Deleted test articles")
 
 	}
 }
@@ -90,7 +90,7 @@ func (suite *repositoryTestSuite) TestPutComment() {
 		},
 	}
 
-	suite.db.GetDB().Create(&testComment)
+	suite.aRepo.PutComment(&testComment)
 	article, found := suite.aRepo.GetArticleWithComments(999, 1, 1)
 	suite.True(found, "Article found")
 	suite.Equal(testArticle, article, "Article data match")

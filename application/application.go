@@ -36,11 +36,12 @@ type IApplication interface {
 	GetImagesDir() string
 	InitImagesDir() string
 	InitDb() bool
+	GetDatabase() database.IDatabase
 	ReadEnvFile() (bool, map[string]string)
 	Init(routes *map[string]router.TRoutesList) error
 	GetAuthorizedUserFromHeader(authHeader string) (dbStructure.User, error)
-	SetArticlesRepo(repository *api.TArticlesRepository)
-	GetArticlesRepo() *api.TArticlesRepository
+	SetArticlesRepo(repository api.ArticlesRepository)
+	GetArticlesRepo() api.ArticlesRepository
 	GetRouter() router.AppRouter
 }
 
@@ -54,11 +55,14 @@ type TApplication struct {
 	config         map[string]string
 	db             database.IDatabase
 	router         router.TAppRouter
-	articlesRepo   *api.TArticlesRepository
+	articlesRepo   api.ArticlesRepository
 	ConfigFilePath string
 	ImagesDir      string
 }
 
+func (app *TApplication) GetDatabase() database.IDatabase {
+	return app.db
+}
 func (applicationRepository *TApplicationRepository) GetApplication() IApplication {
 	if applicationRepository.application == nil {
 		applicationRepository.application = &TApplication{ConfigFilePath: ".env", ImagesDir: ImagesDirectory, db: &database.TDatabase{}}
@@ -90,11 +94,11 @@ func (applicationRepository *TApplicationRepository) Bootstrap(routesList *map[s
 	}
 }
 
-func (app *TApplication) GetArticlesRepo() *api.TArticlesRepository {
+func (app *TApplication) GetArticlesRepo() api.ArticlesRepository {
 	return app.articlesRepo
 }
 
-func (app *TApplication) SetArticlesRepo(repository *api.TArticlesRepository) {
+func (app *TApplication) SetArticlesRepo(repository api.ArticlesRepository) {
 	app.articlesRepo = repository
 }
 
@@ -118,7 +122,7 @@ func (app *TApplication) InitDb() bool {
 	app.SetArticlesRepo(&api.TArticlesRepository{
 		IDatabase: app.db,
 	})
-	app.GetArticlesRepo().AutoMigrate()
+	app.db.AutoMigrate()
 	return connOk
 }
 func (app *TApplication) Init(routes *map[string]router.TRoutesList) error {

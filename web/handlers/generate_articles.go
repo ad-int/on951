@@ -9,7 +9,7 @@ import (
 )
 
 func Generate() {
-	db := application.GetApplication().GetArticlesRepo().GetDB()
+	db := application.GetApplication().GetDatabase().GetDB()
 
 	rand.Seed(time.Now().UnixNano())
 

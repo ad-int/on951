@@ -38,7 +38,7 @@ type handlersTestSuite struct {
 	context      *gin.Context
 	db           database.TDatabaseMock
 	recorder     *httptest.ResponseRecorder
-	articlesRepo api.TArticlesRepository
+	articlesRepo api.ArticlesRepository
 }
 
 func TestHandlersTestSuite(t *testing.T) {
@@ -84,8 +84,15 @@ func (suite *handlersTestSuite) prepare(testCase TestCase, requiresLogin bool, h
 
 	suite.db.On("ConnectToDB", "dummy").Return(true)
 	suite.Assert().True(suite.db.ConnectToDB("dummy"), "Connecting to in-memory DB")
+	if !testCase.runHandlerTwice {
+		_ = suite.db.GetDB().Migrator().DropTable(dbStructure.TableArticles, "Comments")
+	}
 	suite.db.AutoMigrate()
-	suite.articlesRepo = api.TArticlesRepository{IDatabase: &suite.db}
+	if testCase.runHandlerTwice {
+		suite.articlesRepo = &api.TArticlesRepositoryMock{IDatabase: &suite.db}
+	} else {
+		suite.articlesRepo = &api.TArticlesRepository{IDatabase: &suite.db}
+	}
 
 	for i := 1; i <= testCase.totalArticlesInDb; i++ {
 		record := dbStructure.ArticleBriefInfo{Title: "article " + strconv.Itoa(i)}
@@ -113,8 +120,9 @@ func (suite *handlersTestSuite) prepare(testCase TestCase, requiresLogin bool, h
 	}
 
 	app := &application.TApplicationMock{}
-	app.SetArticlesRepo(&suite.articlesRepo)
-	app.On("GetImagesDir").Return("images")
+	app.SetDB(&suite.db)
+	app.SetArticlesRepo(suite.articlesRepo)
+	app.On("GetImagesDir").Return(testCase.imagesDir)
 	application.SetApplication(app)
 	suite.IsType(&application.TApplicationMock{}, application.GetApplication())
 	suite.context.Params = testCase.params
@@ -139,13 +147,17 @@ func (suite *handlersTestSuite) prepare(testCase TestCase, requiresLogin bool, h
 	}
 	for _, hFunc := range handlerFunc {
 		hFunc(suite.context)
+		if testCase.runHandlerTwice {
+			suite.recorder.Body.Truncate(0)
+			hFunc(suite.context)
+		}
 	}
 
 	jsonBytes, err := json.MarshalIndent(testCase.response, "", "    ")
 	suite.Nil(err)
 	suite.Equal(string(jsonBytes)+"\r\n", suite.recorder.Body.String())
-	application.GetApplication().GetArticlesRepo().DisconnectDB()
-	suite.Nil(suite.articlesRepo.GetDB(), "disconnecting in-memory DB")
+	suite.db.DisconnectDB()
+	suite.Nil(application.GetApplication().GetDatabase().GetDB(), "disconnecting in-memory DB")
 
 }
 
@@ -156,16 +168,17 @@ func (suite *handlersTestSuite) TestGenerateArticles() {
 	suite.db.On("ConnectToDB", "dummy").Return(true)
 	suite.Assert().True(suite.db.ConnectToDB("dummy"), "Connecting to in-memory DB")
 	suite.db.AutoMigrate()
-	suite.articlesRepo = api.TArticlesRepository{IDatabase: &suite.db}
+	suite.articlesRepo = &api.TArticlesRepository{IDatabase: &suite.db}
 	app := &application.TApplicationMock{}
-	app.SetArticlesRepo(&suite.articlesRepo)
+	app.SetDB(&suite.db)
+	app.SetArticlesRepo(suite.articlesRepo)
 	application.SetApplication(app)
 	suite.IsType(&application.TApplicationMock{}, application.GetApplication())
 	Generate()
 	articles := application.GetApplication().GetArticlesRepo().GetArticles(1, 20)
 	suite.Len(articles, 1)
-	application.GetApplication().GetArticlesRepo().DisconnectDB()
-	suite.Nil(suite.articlesRepo.GetDB(), "disconnecting in-memory DB")
+	suite.db.DisconnectDB()
+	suite.Nil(application.GetApplication().GetDatabase().GetDB(), "disconnecting in-memory DB")
 
 }
 

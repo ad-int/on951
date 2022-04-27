@@ -24,9 +24,9 @@ func WriteMessage(ctx *gin.Context, code int, message string, prevError ...error
 	})
 	log.Println(message)
 	for _, e := range prevError {
-		if e != nil {
-			_ = ctx.Error(e)
-		}
+		//if e != nil {
+		//	_ = ctx.Error(e)
+		//}
 		log.Println(e)
 	}
 	writeNewLine(ctx)

@@ -137,6 +137,10 @@ func updateImageLinks(text string, links map[string]string, urlPrefix string) st
 }
 
 func Process(text string, imagesDir string, urlPrefix string) (string, bool) {
+	log.Println(imagesDir)
+	if len(imagesDir) == 0 {
+		return text, false
+	}
 	links := grabAllValidImages(text, imagesDir)
 	return updateImageLinks(text, links, urlPrefix), true
 

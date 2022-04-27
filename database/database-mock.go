@@ -37,7 +37,7 @@ func (db *TDatabaseMock) ConnectToDB(dsn string) bool {
 	if dsn == "invalid-dsn" {
 		panic(errors.New(DbConnectionError))
 	}
-	db.Db, err = gorm.Open(sqlite.Open("file:mem-db?mode=memory"), &db.Config)
+	db.Db, err = gorm.Open(sqlite.Open("file:mem-db?mode=memory&cache=shared"), &db.Config)
 
 	if err != nil {
 		panic(err)
