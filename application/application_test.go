@@ -1,15 +1,36 @@
 package application
 
 import (
+	"errors"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"log"
 	"on951/api"
 	"on951/database"
+	"on951/router"
 	"os"
 	"reflect"
 	"testing"
 )
+
+type FakeRouter struct {
+	mock.Mock
+	router.TAppRouter
+}
+
+func (rf *FakeRouter) Run() error {
+	args := rf.Called()
+	return args.Error(0)
+}
+
+func (rf *FakeRouter) Configure(trustedProxies []string, allowedHeaders []string, allowAllOrigins bool) error {
+	args := rf.Called()
+	return args.Error(0)
+}
+func (rf *FakeRouter) InitRoutes(routes *map[string]router.TRoutesList) {
+
+}
 
 const fakeImagesDir = "path/fake-images-dir"
 
@@ -86,7 +107,7 @@ func (suite *applicationTestSuite) TestInitDb() {
 	suite.True(app.InitDb())
 }
 
-func (suite *applicationTestSuite) TestInit() {
+func (suite *applicationTestSuite) TestInitOnApplicationMock() {
 	dbMock := &database.TDatabaseMock{}
 	dbMock.On("GetConfigValue", "DSN").Return("")
 	dbMock.On("ConnectToDB", "").Return(true)
@@ -95,6 +116,41 @@ func (suite *applicationTestSuite) TestInit() {
 	suite.PanicsWithValue(MsgCannotReadImagesDirectory, func() {
 		_ = app.Init(&testApplicationData[0].routes)
 	})
+}
+
+func (suite *applicationTestSuite) TestInit() {
+
+	dbMock := &database.TDatabaseMock{}
+	dbMock.On("GetConfigValue", "DSN").Return("")
+	dbMock.On("ConnectToDB", "").Return(true)
+	fakeRouter := &FakeRouter{}
+	fakeRouter.On("Configure", mock.Anything).Return(nil)
+	fakeRouter.On("Run").Return(nil)
+	app := &TApplication{db: dbMock, router: fakeRouter}
+	suite.Nil(app.Init(&testApplicationData[0].routes))
+}
+func (suite *applicationTestSuite) TestInitWithInvalidConfig() {
+
+	dbMock := &database.TDatabaseMock{}
+	dbMock.On("GetConfigValue", "DSN").Return("")
+	dbMock.On("ConnectToDB", "").Return(true)
+	fakeRouter := &FakeRouter{}
+	fakeRouter.On("Configure", mock.Anything).Return(errors.New("configuration failed"))
+	app := &TApplication{db: dbMock, router: fakeRouter}
+	suite.Error(errors.New("configuration failed"), app.Init(&testApplicationData[0].routes))
+}
+
+func (suite *applicationTestSuite) TestInitWithNotExistingImagesDir() {
+
+	dbMock := &database.TDatabaseMock{}
+	dbMock.On("GetConfigValue", "DSN").Return("")
+	dbMock.On("ConnectToDB", "").Return(true)
+	app := &TApplication{db: dbMock, router: &FakeRouter{}, ImagesDir: "fdghgfdhgfdhgfesgera"}
+
+	suite.PanicsWithError(MsgCannotReadImagesDirectory, func() {
+		_ = app.Init(&testApplicationData[0].routes)
+	})
+
 }
 
 func (suite *applicationTestSuite) TestInitDbFailsWithPanic() {

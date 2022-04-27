@@ -13,6 +13,7 @@ type TApplicationMock struct {
 	mock.Mock
 	TApplication
 	db        database.IDatabase
+	router    router.TAppRouter
 	ImagesDir string
 }
 

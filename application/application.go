@@ -54,7 +54,7 @@ type TApplicationRepository struct {
 type TApplication struct {
 	config         map[string]string
 	db             database.IDatabase
-	router         router.TAppRouter
+	router         router.AppRouter
 	articlesRepo   api.ArticlesRepository
 	ConfigFilePath string
 	ImagesDir      string
@@ -217,5 +217,5 @@ func (app *TApplication) InitImagesDir() string {
 }
 
 func (app *TApplication) GetRouter() router.AppRouter {
-	return &app.router
+	return app.router
 }
