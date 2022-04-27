@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"math/rand"
 	"on951/application"
 	dbStructure "on951/database/structure"
@@ -19,11 +18,5 @@ func Generate() {
 		Description: randomizer.GetRandomString(255, 8),
 		AuthorId:    uint(rand.Intn(50)) + 1,
 	}
-	// Create
-
-	result := db.Create(&ArticleToInsert)
-
-	if result.Error != nil {
-		log.Println(result.Error)
-	}
+	_ = db.Create(&ArticleToInsert)
 }

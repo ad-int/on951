@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"on951/application"
 	dbStructure "on951/database/structure"
+	"on951/web"
+	"strconv"
 	"time"
 )
 
@@ -19,9 +21,11 @@ func GetToken(ctx *gin.Context) {
 	audience := ctx.DefaultQuery("audience", application.GetApplication().GetConfigValue("AUDIENCE"))
 	issuer := ctx.DefaultQuery("issuer", application.GetApplication().GetConfigValue("ISSUER"))
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	cost, _ := strconv.Atoi(application.GetApplication().GetConfigValue("BCRYPT_HASH_GENERATION_COST"))
+	log.Println("cost", cost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), cost)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		web.WriteMessage(ctx, http.StatusInternalServerError, "unable to generate token", err)
 		return
 	}
 
@@ -32,7 +36,7 @@ func GetToken(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.IndentedJSON(http.StatusInternalServerError, err)
+		web.WriteMessage(ctx, http.StatusInternalServerError, "internal server error", err)
 		return
 	}
 
@@ -47,7 +51,7 @@ func GetToken(ctx *gin.Context) {
 	var jwtBytes []byte
 	jwtBytes, err = claims.HMACSign(jwt.HS512, []byte(application.GetApplication().GetConfigValue("SECRET")))
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		web.WriteMessage(ctx, http.StatusInternalServerError, "internal server error", err)
 	}
 
 	ctx.Status(http.StatusOK)

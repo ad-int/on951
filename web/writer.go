@@ -15,22 +15,20 @@ func writeNewLine(ctx *gin.Context) {
 }
 
 func WriteBadRequestError(ctx *gin.Context, message string, prevError ...error) {
-	ctx.IndentedJSON(http.StatusBadRequest, &models.Response{
-		Code: http.StatusBadRequest,
-		Body: message,
-	})
-	log.Println(message)
-	for e := range prevError {
-		log.Println(e)
-	}
-	writeNewLine(ctx)
+	WriteMessage(ctx, http.StatusBadRequest, message, prevError...)
 }
-func WriteMessage(ctx *gin.Context, code int, message string) {
+func WriteMessage(ctx *gin.Context, code int, message string, prevError ...error) {
 	ctx.IndentedJSON(code, &models.Response{
 		Code: code,
 		Body: message,
 	})
 	log.Println(message)
+	for _, e := range prevError {
+		if e != nil {
+			_ = ctx.Error(e)
+		}
+		log.Println(e)
+	}
 	writeNewLine(ctx)
 }
 

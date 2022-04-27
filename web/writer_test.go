@@ -54,7 +54,7 @@ func (suite *writerTestSuite) TestWriteBadRequestError() {
 }
 
 func (suite *writerTestSuite) TestWriteMessage() {
-	WriteMessage(suite.context, http.StatusOK, "OK")
+	WriteMessage(suite.context, http.StatusOK, "OK", nil)
 	jsonBytes, err := json.MarshalIndent(models.Response{Code: http.StatusOK, Body: "OK"}, "", "    ")
 	suite.Nil(err)
 	suite.Equal(http.StatusOK, suite.recorder.Code)

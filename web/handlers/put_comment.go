@@ -35,9 +35,17 @@ func PutComment(ctx *gin.Context) {
 		web.WriteBadRequestError(ctx, "Error reading comment", err)
 		return
 	}
+
+	_, found := application.GetApplication().GetArticlesRepo().GetArticle(articleId)
+
+	if !found {
+		web.WriteMessage(ctx, http.StatusNotFound, "Article not found!")
+		return
+	}
+
 	commentBodyStr := string(commentBody)
 	var areImageLinksProcessed bool
-	commentBodyStr, areImageLinksProcessed = image_links_parser.Process(commentBodyStr, application.ImagesDirectory, application.ImagesDirectory)
+	commentBodyStr, areImageLinksProcessed = image_links_parser.Process(commentBodyStr, application.GetApplication().GetImagesDir(), application.ImagesDirectory)
 	if !areImageLinksProcessed {
 		web.Write(ctx, http.StatusInsufficientStorage, models.Response{
 			Code: http.StatusInsufficientStorage,

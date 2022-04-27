@@ -48,6 +48,7 @@ func (suite *middlewareTestSuite) TestApiAuthCheck() {
 	app.On("GetConfigValue", "AUDIENCE").Return("general")
 	app.On("GetConfigValue", "ISSUER").Return("localhost")
 	app.On("GetConfigValue", "SECRET").Return("234")
+	app.On("GetConfigValue", "BCRYPT_HASH_GENERATION_COST").Return("14")
 
 	application.SetApplication(app)
 	handlers.GetToken(suite.context)
@@ -83,6 +84,7 @@ func (suite *middlewareTestSuite) TestApiAuthCheckThatFails() {
 	app.On("GetConfigValue", "AUDIENCE").Return("general")
 	app.On("GetConfigValue", "ISSUER").Return("localhost")
 	app.On("GetConfigValue", "SECRET").Return("234")
+	app.On("GetConfigValue", "BCRYPT_HASH_GENERATION_COST").Return("14")
 
 	application.SetApplication(app)
 	handlers.GetToken(suite.context)
@@ -109,4 +111,19 @@ func (suite *middlewareTestSuite) TestApiAuthCheckThatFails() {
 	context.Request.Header.Set("Authorization", "Bearer "+token+"fail!!!")
 	ApiAuthCheck(context)
 	suite.Equal(context.Writer.Status(), http.StatusUnauthorized)
+}
+
+func (suite *middlewareTestSuite) TestApiAuthCheckWithHighCost() {
+
+	app := &application.TApplicationMock{}
+
+	app.On("GetConfigValue", "AUDIENCE").Return("general")
+	app.On("GetConfigValue", "ISSUER").Return("localhost")
+	app.On("GetConfigValue", "SECRET").Return("234")
+	app.On("GetConfigValue", "BCRYPT_HASH_GENERATION_COST").Return("9999")
+
+	application.SetApplication(app)
+	handlers.GetToken(suite.context)
+
+	suite.Equal(suite.context.Writer.Status(), http.StatusInternalServerError)
 }
