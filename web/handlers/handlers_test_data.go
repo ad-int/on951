@@ -47,6 +47,26 @@ var testHandlersData = Handlers{
 				Body: "Specify article ID",
 			},
 		},
+		{
+			requestURI: "",
+			params: gin.Params{
+				{Key: "article_id", Value: "15bad-id"},
+			},
+			response: models.Response{
+				Code: 400,
+				Body: "Specify article ID",
+			},
+		},
+		{
+			requestURI: "",
+			params: gin.Params{
+				{Key: "article_id", Value: "21"},
+			},
+			response: models.Response{
+				Code: 404,
+				Body: "Article not found",
+			},
+		},
 	},
 	GetArticles: []TestCase{
 		{

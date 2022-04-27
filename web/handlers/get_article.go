@@ -18,13 +18,13 @@ func GetArticle(ctx *gin.Context) {
 	}
 	articleId, err := strconv.Atoi(paramArticleId)
 	if err != nil {
-		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		web.WriteBadRequestError(ctx, "Specify article ID")
 		return
 	}
 
 	article, found := application.GetApplication().GetArticlesRepo().GetArticle(articleId)
 	if !found {
-		web.Write(ctx, http.StatusOK, []string{})
+		web.WriteMessage(ctx, http.StatusNotFound, "Article not found")
 		return
 	}
 	web.Write(ctx, http.StatusOK, article)
