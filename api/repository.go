@@ -16,11 +16,15 @@ type TArticlesRepository struct {
 }
 
 func (aRepo *TArticlesRepository) GetArticles(pageNo int, pageSize int) []dbStructure.ArticleBriefInfo {
+	offset := 0
+	if pageNo >= 1 {
+		offset = (pageNo - 1) * pageSize
+	}
 	var list []dbStructure.ArticleBriefInfo
 	aRepo.GetDB().
 		Debug().
 		Table(dbStructure.TableArticles).
-		Offset((pageNo - 1) * pageSize).
+		Offset(offset).
 		Limit(pageSize).
 		Find(&list)
 	return list

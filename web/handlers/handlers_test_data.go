@@ -14,6 +14,7 @@ type Handlers = struct {
 	PutComment  []TestCase
 }
 type TestCase struct {
+	method             string
 	requestURI         string
 	totalArticlesInDb  int
 	commentsPerArticle int
@@ -27,7 +28,8 @@ type TestCase struct {
 var testHandlersData = Handlers{
 	GetArticle: []TestCase{
 		{
-			requestURI:        "",
+			method:            "GET",
+			requestURI:        "//article",
 			totalArticlesInDb: 20,
 			params: gin.Params{
 				{Key: "article_id", Value: "3"},
@@ -40,7 +42,7 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			requestURI: "",
+			requestURI: "//article",
 			params:     gin.Params{},
 			response: models.Response{
 				Code: 400,
@@ -48,7 +50,8 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			requestURI: "",
+			method:     "GET",
+			requestURI: "//article",
 			params: gin.Params{
 				{Key: "article_id", Value: "15bad-id"},
 			},
@@ -58,7 +61,8 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			requestURI: "",
+			method:     "GET",
+			requestURI: "//article",
 			params: gin.Params{
 				{Key: "article_id", Value: "21"},
 			},
@@ -70,7 +74,8 @@ var testHandlersData = Handlers{
 	},
 	GetArticles: []TestCase{
 		{
-			requestURI:        "",
+			method:            "GET",
+			requestURI:        "//articles",
 			params:            gin.Params{},
 			totalArticlesInDb: 5,
 			response: []structure.ArticleBriefInfo{
@@ -96,10 +101,115 @@ var testHandlersData = Handlers{
 				},
 			},
 		},
+		{
+			method:            "GET",
+			requestURI:        "//articles?page0&page_size=0",
+			params:            gin.Params{},
+			totalArticlesInDb: 5,
+			response: []structure.ArticleBriefInfo{
+				{
+					Id:    1,
+					Title: "article 1",
+				},
+				{
+					Id:    2,
+					Title: "article 2",
+				},
+				{
+					Id:    3,
+					Title: "article 3",
+				},
+				{
+					Id:    4,
+					Title: "article 4",
+				},
+				{
+					Id:    5,
+					Title: "article 5",
+				},
+			},
+		},
+		{
+			method:            "GET",
+			requestURI:        "//articles?page_size=2",
+			params:            gin.Params{},
+			totalArticlesInDb: 5,
+			response: []structure.ArticleBriefInfo{
+				{
+					Id:    1,
+					Title: "article 1",
+				},
+				{
+					Id:    2,
+					Title: "article 2",
+				},
+			},
+		},
+		{
+			method:            "GET",
+			requestURI:        "//articles?page=3&page_size=2",
+			params:            gin.Params{},
+			totalArticlesInDb: 5,
+			response: []structure.ArticleBriefInfo{
+				{
+					Id:    5,
+					Title: "article 5",
+				},
+			},
+		},
+		{
+			method:            "GET",
+			requestURI:        "//articles?page=&page_size=",
+			params:            gin.Params{},
+			totalArticlesInDb: 5,
+			response: []structure.ArticleBriefInfo{
+				{
+					Id:    1,
+					Title: "article 1",
+				},
+				{
+					Id:    2,
+					Title: "article 2",
+				},
+				{
+					Id:    3,
+					Title: "article 3",
+				},
+				{
+					Id:    4,
+					Title: "article 4",
+				},
+				{
+					Id:    5,
+					Title: "article 5",
+				},
+			},
+		},
+		{
+			method:            "GET",
+			requestURI:        "//articles?page=3b&page_size=2a",
+			params:            gin.Params{},
+			totalArticlesInDb: 5,
+			response: models.Response{
+				Code: 400,
+				Body: "Incorrect page number",
+			},
+		},
+		{
+			method:            "GET",
+			requestURI:        "//articles?page=3&page_size=2a",
+			params:            gin.Params{},
+			totalArticlesInDb: 5,
+			response: models.Response{
+				Code: 400,
+				Body: "Incorrect page size",
+			},
+		},
 	},
 	GetComments: []TestCase{
 		{
-			requestURI: "",
+			method:     "GET",
+			requestURI: "//comments",
 			params: gin.Params{
 				{Key: "article_id", Value: "3"},
 			},
@@ -114,7 +224,8 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			requestURI: "",
+			method:     "GET",
+			requestURI: "//comments",
 			params: gin.Params{
 				{Key: "article_id", Value: "5"},
 			},
@@ -165,6 +276,7 @@ var testHandlersData = Handlers{
 	},
 	PutComment: []TestCase{
 		{
+			method:     "PUT",
 			requestURI: "//comment",
 			params: gin.Params{
 				{Key: "article_id", Value: "3"},
@@ -175,7 +287,7 @@ var testHandlersData = Handlers{
 				Body: "Thanks for commenting!",
 			},
 			check: TestCase{
-				requestURI: "",
+				requestURI: "//article",
 				params: gin.Params{
 					{Key: "article_id", Value: "3"},
 				},

@@ -11,35 +11,34 @@ import (
 )
 
 const (
-	defaultParamPageNo   = "1"
-	defaultParamPageSize = "20"
+	defaultPageNo   = 1
+	defaultPageSize = 20
 )
 
 func GetArticles(ctx *gin.Context) {
-	paramPageNo := strings.TrimSpace(ctx.DefaultQuery("page", defaultParamPageNo))
-	paramPageSize := strings.TrimSpace(ctx.DefaultQuery("page_size", defaultParamPageSize))
+	var err error
+	pageNo := defaultPageNo
+	pageSize := defaultPageSize
 
-	if len(paramPageNo) < 1 {
-		paramPageNo = defaultParamPageNo
+	paramPageNo := strings.TrimSpace(ctx.Query("page"))
+	paramPageSize := strings.TrimSpace(ctx.Query("page_size"))
 
+	if paramPageNo != "" {
+		pageNo, err = strconv.Atoi(paramPageNo)
+		if err != nil {
+			web.WriteBadRequestError(ctx, "Incorrect page number", err)
+			return
+		}
 	}
-	if len(paramPageSize) < 1 {
-		paramPageNo = defaultParamPageSize
-
-	}
-
-	PageNo, err := strconv.Atoi(paramPageNo)
-	if err != nil {
-		_ = ctx.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-	pageSize, err := strconv.Atoi(paramPageSize)
-	if err != nil {
-		_ = ctx.AbortWithError(http.StatusBadRequest, err)
-		return
+	if paramPageSize != "" {
+		pageSize, err = strconv.Atoi(paramPageSize)
+		if err != nil {
+			web.WriteBadRequestError(ctx, "Incorrect page size", err)
+			return
+		}
 	}
 	var articles []dbStructure.ArticleBriefInfo
-	articles = application.GetApplication().GetArticlesRepo().GetArticles((PageNo-1)*pageSize, pageSize)
+	articles = application.GetApplication().GetArticlesRepo().GetArticles(pageNo, pageSize)
 	web.Write(ctx, http.StatusAccepted, articles)
 
 }

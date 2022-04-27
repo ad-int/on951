@@ -103,6 +103,10 @@ func (suite *handlersTestSuite) prepare(testCase TestCase, handlerFunc ...func(c
 	suite.IsType(&application.TApplicationMock{}, application.GetApplication())
 	suite.context.Params = testCase.params
 
+	suite.context.Request = httptest.
+		NewRequest(
+			testCase.method, testCase.requestURI, ioutil.NopCloser(bytes.NewReader([]byte(testCase.body))),
+		)
 	if len(testCase.body) > 0 {
 
 		app.On("GetConfigValue", "AUDIENCE").Return("general")
@@ -111,10 +115,6 @@ func (suite *handlersTestSuite) prepare(testCase TestCase, handlerFunc ...func(c
 
 		token := suite.getNewAuthToken()
 
-		suite.context.Request = httptest.
-			NewRequest(
-				"GET", testCase.requestURI, ioutil.NopCloser(bytes.NewReader([]byte(testCase.body))),
-			)
 		suite.context.Request.Header = http.Header{}
 		suite.context.Request.Header.Set("Authorization", "Bearer "+token)
 	}
