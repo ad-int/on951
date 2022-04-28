@@ -81,3 +81,17 @@ func (suite *imageLinksParserTestSuite) TestDecodeContent() {
 		suite.Equal(testCase.decodedContent, decodeContent(testCase.encoding, testCase.content))
 	}
 }
+func (suite *imageLinksParserTestSuite) TestProcess() {
+
+	for _, testCase := range testProcessData {
+		d := testCase.imagesDir
+		if len(testCase.imagesDir) > 0 {
+			d, _ = ioutil.TempDir(os.TempDir(), testCase.imagesDir)
+		}
+		parsedText, success := Process(testCase.content, d, testCase.urlPrefix)
+		suite.Equal(testCase.success, success)
+		suite.Equal(testCase.parsedContent, parsedText)
+
+	}
+
+}

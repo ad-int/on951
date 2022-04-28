@@ -54,17 +54,14 @@ func grabAllValidImages(text string, imagesDir string) map[string]string {
 }
 
 func validateImage(mimeType string, encoding string, encodedImage string) (bool, string, error) {
-	parsedMimeType, _, err := mime.ParseMediaType(mimeType)
-	if err != nil || parsedMimeType != mimeType {
-		log.Printf("Unrecognized mime type %v\n", mimeType)
-		return false, "", nil
-	}
+	parsedMimeType, _, _ := mime.ParseMediaType(mimeType)
+
 	if !strings.Contains(parsedMimeType, "image/") {
 		log.Printf("Not an image mime type: %v\n", mimeType)
 		return false, "", nil
 	}
 	var extensions []string
-	extensions, err = mime.ExtensionsByType(mimeType)
+	extensions, err := mime.ExtensionsByType(mimeType)
 	if err != nil {
 		return false, "", errors.New(fmt.Sprintf("No extension for %v\n", mimeType))
 	}

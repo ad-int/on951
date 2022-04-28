@@ -135,23 +135,6 @@ func (suite *applicationTestSuite) TestInit() {
 	suite.IsType(&FakeRouter{}, app.GetRouter())
 }
 
-func (suite *applicationTestSuite) TestInitDbWhenMigrationfails() {
-
-	dbMock := &database.TDatabaseMock{}
-	dbMock.On("ConnectToDB", "dummy-db-init-fails").Return(true)
-	fakeRouter := &FakeRouter{}
-	fakeRouter.On("Configure", mock.Anything).Return(nil)
-	fakeRouter.On("Run").Return(nil)
-
-	f, _ := ioutil.TempFile(os.TempDir(), "config-test")
-	_, _ = f.WriteString(`DSN="dummy-db-init-fails"`)
-	app := &TApplication{db: dbMock, router: fakeRouter, ConfigFilePath: f.Name()}
-	app.ReadEnvFile()
-	suite.PanicsWithError("dummy-db-init-fails", func() {
-		app.InitDb()
-	})
-}
-
 func (suite *applicationTestSuite) TestGetImagesDir() {
 
 	app := &TApplication{ImagesDir: "application_test.go"}
