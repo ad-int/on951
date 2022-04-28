@@ -30,16 +30,13 @@ func getImageFileName(mimeType string, encoding string, encodedImage string) (st
 }
 
 func grabAllValidImages(text string, imagesDir string) map[string]string {
-	imgTagRegexp, err := regexp.Compile(`(?U)<img src="data:([\w/]+);([^"]+),([^"]+)".*>`)
+	imgTagRegexp, _ := regexp.Compile(`(?U)<img src="data:([\w/]+);([^"]+),([^"]+)".*>`)
 	var foundImages = make(map[string]string)
 	var index uint = 0
-	if err != nil {
-		log.Println(err)
-	}
 	for _, match := range imgTagRegexp.FindAllStringSubmatch(text, -1) {
-		if len(match) != 4 {
-			continue
-		}
+		//if len(match) != 4 {
+		//	continue
+		//}
 		index = index + 1
 
 		filename, isValid := getImageFileName(match[1], match[2], match[3])
@@ -60,11 +57,10 @@ func validateImage(mimeType string, encoding string, encodedImage string) (bool,
 		log.Printf("Not an image mime type: %v\n", mimeType)
 		return false, "", nil
 	}
+	var err error
 	var extensions []string
-	extensions, err := mime.ExtensionsByType(mimeType)
-	if err != nil {
-		return false, "", errors.New(fmt.Sprintf("No extension for %v\n", mimeType))
-	}
+	extensions, _ = mime.ExtensionsByType(mimeType)
+
 	if len(extensions) < 1 {
 		return false, "", errors.New(fmt.Sprintf("No extension for %v\n", mimeType))
 	}
@@ -118,7 +114,9 @@ func decodeContent(encoding string, encodedContent string) []byte {
 func saveImage(imagePath string, mimeType string, encoding string, encodedImage string) bool {
 
 	decodedImage := decodeContent(encoding, encodedImage)
-	if _, statErr := os.Stat(imagePath); os.IsExist(statErr) {
+
+	if fi, statErr := os.Stat(imagePath); statErr == nil {
+		log.Println(imagePath, statErr, fi)
 		return true
 	}
 	err := ioutil.WriteFile(imagePath, decodedImage, fs.ModePerm)

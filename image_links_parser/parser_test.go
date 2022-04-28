@@ -46,8 +46,20 @@ func (suite *imageLinksParserTestSuite) TestSaveImage() {
 		suite.Nil(err, "creating temp images dir")
 		if testCase.valid {
 			isValid = saveImage(filepath.Join(tempDir, testCase.fileName+testCase.extension), testCase.mimyType, testCase.encoding, testCase.encodedImage)
+			isValid = saveImage(filepath.Join(tempDir, testCase.fileName+testCase.extension), testCase.mimyType, testCase.encoding, testCase.encodedImage)
 		}
 		suite.Equal(testCase.valid, isValid)
+	}
+}
+func (suite *imageLinksParserTestSuite) TestSaveImage2() {
+	for _, testCase := range testImagesData {
+		isValid := false
+		tempDir := "#############"
+
+		if testCase.valid {
+			isValid = saveImage(filepath.Join(tempDir, testCase.fileName+testCase.extension), testCase.mimyType, testCase.encoding, testCase.encodedImage)
+		}
+		suite.False(isValid)
 	}
 }
 
