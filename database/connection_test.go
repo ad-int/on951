@@ -8,36 +8,47 @@ import (
 type TestCase = struct {
 	dsn                     string
 	isConnectionEstablished bool
+	driverName              string
+	migrationPanics         bool
+	panicMsg                string
 }
 
 func TestConnectToDB(t *testing.T) {
-	databaseMock := new(TDatabaseMock)
-
 	for _, testCase := range getTestsDataForConnectToDB() {
+		databaseMock := new(TDatabaseMock)
+
 		databaseMock.On("ConnectToDB", testCase.dsn).Return(testCase.isConnectionEstablished)
-		if !testCase.isConnectionEstablished {
-			databaseMock.On("ConnectToDB", testCase.dsn).Panic(DbConnectionError)
+		if !testCase.isConnectionEstablished || testCase.panicMsg != "" {
+			databaseMock.On("ConnectToDB", testCase.dsn).Panic(testCase.panicMsg)
 		}
-	}
-	for _, test := range getTestsDataForConnectToDB() {
 		application := App{TDatabaseMock: databaseMock}
-		if test.isConnectionEstablished {
-			connOk := application.ConnectToDB(test.dsn)
-			assert.Equal(t, "sqlite", application.GetDB().Dialector.Name())
+		if testCase.isConnectionEstablished {
+			connOk := application.ConnectToDB(testCase.dsn)
+			assert.Equal(t, testCase.driverName, application.GetDB().Dialector.Name())
+			if testCase.migrationPanics {
+				assert.Panics(t, func() {
+					application.AutoMigrate()
+				})
+			} else {
+				application.AutoMigrate()
+			}
 			application.DisconnectDB()
-			assert.Equal(t, test.isConnectionEstablished, connOk)
+			assert.Equal(t, testCase.isConnectionEstablished, connOk)
 			assert.Nil(t, application.GetDB())
-		} else {
-			assert.PanicsWithError(t, DbConnectionError, func() { application.ConnectToDB(test.dsn) })
+		} else if testCase.panicMsg != "" {
+			assert.PanicsWithError(t, testCase.panicMsg, func() { application.ConnectToDB(testCase.dsn) })
 		}
+
+		databaseMock.AssertExpectations(t)
 	}
-	databaseMock.AssertExpectations(t)
 
 }
 func getTestsDataForConnectToDB() []TestCase {
 	return []TestCase{
-		{dsn: "will-connect-to-valid-in-memory-db", isConnectionEstablished: true},
-		{dsn: "invalid-dsn", isConnectionEstablished: false},
+		{dsn: "will-connect-to-valid-in-memory-db", isConnectionEstablished: true, driverName: "sqlite"},
+		{dsn: "dummy-db", isConnectionEstablished: true, driverName: "dummy", migrationPanics: true},
+		{dsn: "dummy-db-init-fails", isConnectionEstablished: false, driverName: "dummy", panicMsg: "dummy-db-init-fails"},
+		{dsn: "invalid-dsn", isConnectionEstablished: false, panicMsg: DbConnectionError},
 	}
 }
 func TestConnectToMemoryDB(t *testing.T) {
