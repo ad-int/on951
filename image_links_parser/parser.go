@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"image/gif"
 	"image/jpeg"
@@ -64,8 +65,11 @@ func validateImage(mimeType string, encoding string, encodedImage string) (bool,
 	}
 	var extensions []string
 	extensions, err = mime.ExtensionsByType(mimeType)
-	if len(extensions[0]) < 1 {
-		log.Printf("No extension for %v\n", mimeType)
+	if err != nil {
+		return false, "", errors.New(fmt.Sprintf("No extension for %v\n", mimeType))
+	}
+	if len(extensions) < 1 {
+		return false, "", errors.New(fmt.Sprintf("No extension for %v\n", mimeType))
 	}
 
 	decodeImage := decodeContent(encoding, encodedImage)
