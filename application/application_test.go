@@ -1,17 +1,22 @@
 package application
 
 import (
+	"encoding/json"
 	"errors"
+	"github.com/pascaldekloe/jwt"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/crypto/bcrypt"
 	"io/ioutil"
 	"log"
 	"on951/api"
 	"on951/database"
+	dbStructure "on951/database/structure"
 	"on951/router"
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 type FakeRouter struct {
@@ -129,6 +134,47 @@ func (suite *applicationTestSuite) TestInit() {
 	app := &TApplication{db: dbMock, router: fakeRouter}
 	suite.Nil(app.Init(&testApplicationData[0].routes))
 	suite.IsType(&FakeRouter{}, app.GetRouter())
+}
+
+func (suite *applicationTestSuite) TestGetAuthorizedUserFromHeader() {
+
+	f, err := ioutil.TempFile("", "config-auth-test")
+	suite.Nil(err, "creating temp application config")
+	_, _ = f.WriteString(`SECRET="value1"` + "\n" + `ISSUER="value2"` + "\n" + `AUDIENCE="value3"`)
+	app := &TApplication{ConfigFilePath: f.Name()}
+	SetApplication(app)
+	_, _ = app.ReadEnvFile()
+
+	// ----------------- invalid token test ------------------------
+	_, err = app.GetAuthorizedUserFromHeader("Bearer 123")
+	suite.NotNil(err, "Invalid token")
+	// -------------------------------------------------------------
+
+	userRecord := dbStructure.User{
+		Name:     "guest",
+		Password: "not-set",
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(userRecord.Password), 14)
+	storedUserRecord := dbStructure.User{
+		Id:       1,
+		Name:     userRecord.Name,
+		Password: string(hash),
+	}
+	userRecordJson, _ := json.Marshal(storedUserRecord)
+	var claims jwt.Claims
+	claims.Subject = string(userRecordJson)
+	claims.Issued = jwt.NewNumericTime(time.Now())
+	claims.NotBefore = jwt.NewNumericTime(time.Now())
+	claims.Expires = jwt.NewNumericTime(time.Now().Add(24 * time.Hour))
+	claims.Issuer = GetApplication().GetConfigValue("ISSUER")
+	claims.Audiences = []string{GetApplication().GetConfigValue("AUDIENCE")}
+
+	var jwtBytes []byte
+	jwtBytes, err = claims.HMACSign(jwt.HS512, []byte(GetApplication().GetConfigValue("SECRET")))
+	user, err := app.GetAuthorizedUserFromHeader("Bearer " + string(jwtBytes))
+	suite.Nil(err, "valid token")
+	suite.Equal(storedUserRecord, user)
+
 }
 func (suite *applicationTestSuite) TestInitWithInvalidConfig() {
 
