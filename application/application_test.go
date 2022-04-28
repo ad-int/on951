@@ -94,7 +94,7 @@ func (suite *applicationTestSuite) TestReadEnvFile() {
 		_, _ = app.ReadEnvFile()
 	})
 	suite.False(read)
-	f, err := ioutil.TempFile("", "config-test")
+	f, err := ioutil.TempFile(os.TempDir(), "config-test")
 	suite.Nil(err)
 	_, _ = f.WriteString(`TEST1="value1"` + "\n" + `TEST2="value2"`)
 	app = &TApplication{ConfigFilePath: f.Name()}
@@ -136,46 +136,124 @@ func (suite *applicationTestSuite) TestInit() {
 	suite.IsType(&FakeRouter{}, app.GetRouter())
 }
 
+func (suite *applicationTestSuite) TestGetImagesDir() {
+
+	app := &TApplication{ImagesDir: "application_test.go"}
+	suite.Empty(app.GetImagesDir())
+}
+
 func (suite *applicationTestSuite) TestGetAuthorizedUserFromHeader() {
 
-	f, err := ioutil.TempFile("", "config-auth-test")
+	f, err := ioutil.TempFile(os.TempDir(), "config-auth-test")
 	suite.Nil(err, "creating temp application config")
 	_, _ = f.WriteString(`SECRET="value1"` + "\n" + `ISSUER="value2"` + "\n" + `AUDIENCE="value3"`)
 	app := &TApplication{ConfigFilePath: f.Name()}
 	SetApplication(app)
 	_, _ = app.ReadEnvFile()
 
-	// ----------------- invalid token test ------------------------
-	_, err = app.GetAuthorizedUserFromHeader("Bearer 123")
-	suite.NotNil(err, "Invalid token")
-	// -------------------------------------------------------------
-
 	userRecord := dbStructure.User{
 		Name:     "guest",
 		Password: "not-set",
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(userRecord.Password), 14)
+	token, storedUserRecord, err := suite.generateToken(
+		userRecord,
+		`SECRET="v1"`+"\n"+`ISSUER="v2"`+"\n"+`AUDIENCE="v3"`,
+		time.Now(),
+		time.Now(),
+		time.Now().Add(24*time.Hour),
+	)
+	user, err := app.GetAuthorizedUserFromHeader("Bearer " + token)
+	suite.Nil(err, "valid token")
+	suite.Equal(storedUserRecord, &user)
+
+}
+
+func (suite *applicationTestSuite) generateToken(subject dbStructure.User, configStr string, now time.Time, notBefore time.Time, expires time.Time) (string, *dbStructure.User, error) {
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(subject.Password), 14)
 	storedUserRecord := dbStructure.User{
 		Id:       1,
-		Name:     userRecord.Name,
+		Name:     subject.Name,
 		Password: string(hash),
 	}
 	userRecordJson, _ := json.Marshal(storedUserRecord)
 	var claims jwt.Claims
 	claims.Subject = string(userRecordJson)
-	claims.Issued = jwt.NewNumericTime(time.Now())
-	claims.NotBefore = jwt.NewNumericTime(time.Now())
-	claims.Expires = jwt.NewNumericTime(time.Now().Add(24 * time.Hour))
+	claims.Issued = jwt.NewNumericTime(now)
+	claims.NotBefore = jwt.NewNumericTime(notBefore)
+	claims.Expires = jwt.NewNumericTime(expires)
 	claims.Issuer = GetApplication().GetConfigValue("ISSUER")
 	claims.Audiences = []string{GetApplication().GetConfigValue("AUDIENCE")}
 
 	var jwtBytes []byte
 	jwtBytes, err = claims.HMACSign(jwt.HS512, []byte(GetApplication().GetConfigValue("SECRET")))
-	user, err := app.GetAuthorizedUserFromHeader("Bearer " + string(jwtBytes))
-	suite.Nil(err, "valid token")
-	suite.Equal(storedUserRecord, user)
+	return string(jwtBytes), &storedUserRecord, err
+}
+
+func (suite *applicationTestSuite) TestGetAuthorizedUserFromHeaderWithInvalidTokens() {
+
+	f, err := ioutil.TempFile(os.TempDir(), "config-auth-test")
+	suite.Nil(err, "creating temp application config")
+	_, _ = f.WriteString(`SECRET="v1"` + "\n" + `ISSUER="v2"` + "\n" + `AUDIENCE="v3"`)
+	app := &TApplication{ConfigFilePath: f.Name()}
+	SetApplication(app)
+	_, _ = app.ReadEnvFile()
+
+	userRecord := dbStructure.User{
+		Name:     "guest",
+		Password: "not-set",
+	}
+	token, _, err := suite.generateToken(
+		userRecord,
+		`SECRET="v1"`+"\n"+`ISSUER="v2"`+"\n"+`AUDIENCE="v3"`,
+		time.Now(),
+		time.Now(),
+		time.Now().Add(24*time.Hour),
+	)
+
+	expiredToken, _, err := suite.generateToken(
+		userRecord,
+		`SECRET="v1"`+"\n"+`ISSUER="v2"`+"\n"+`AUDIENCE="v3"`,
+		time.Now(),
+		time.Now(),
+		time.Now().Add(-24*time.Hour),
+	)
+
+	for _, configStr := range []string{
+		`SECRET="v1"` + "\n" + `ISSUER="value2"` + "\n" + `AUDIENCE="value3"`,
+		`SECRET="v1"` + "\n" + `AUDIENCE="value3"`,
+		`SECRET="v1"` + "\n" + `ISSUER="value3"`,
+		`SECRET="v1"` + "\n" + `AUDIENCE="v3"`,
+	} {
+
+		f, err = ioutil.TempFile(os.TempDir(), "config-auth-test-*")
+		suite.Nil(err, "creating temp application config")
+		_, _ = f.WriteString(configStr)
+		app = &TApplication{ConfigFilePath: f.Name()}
+		SetApplication(app)
+		_, _ = app.ReadEnvFile()
+
+		_, err = app.GetAuthorizedUserFromHeader("")
+		suite.NotNil(err, "Invalid token")
+
+		_, err = app.GetAuthorizedUserFromHeader("yo")
+		suite.NotNil(err, "Invalid token")
+
+		_, err = app.GetAuthorizedUserFromHeader("yo 123")
+		suite.NotNil(err, "Invalid token")
+
+		_, err = app.GetAuthorizedUserFromHeader("Bearer 123")
+		suite.NotNil(err, "Invalid token")
+
+		_, err = app.GetAuthorizedUserFromHeader("Bearer " + token)
+		suite.NotNil(err, "Invalid token")
+
+		_, err = app.GetAuthorizedUserFromHeader("Bearer " + expiredToken)
+		suite.NotNil(err, "Invalid token")
+	}
 
 }
+
 func (suite *applicationTestSuite) TestInitWithInvalidConfig() {
 
 	dbMock := &database.TDatabaseMock{}

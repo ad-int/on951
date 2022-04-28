@@ -182,11 +182,7 @@ func (app *TApplication) GetAuthorizedUserFromHeader(authHeader string) (dbStruc
 }
 
 func (app *TApplication) GetImagesDir() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Println(err)
-		return ""
-	}
+	dir, _ := os.Getwd()
 	iDir := filepath.Join(dir, app.ImagesDir)
 	fi, err := os.Stat(iDir)
 	if err != nil {
