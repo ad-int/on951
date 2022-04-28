@@ -60,7 +60,6 @@ func (db *TDatabaseMock) ConnectToDB(dsn string) bool {
 	switch dsn {
 	case "invalid-dsn":
 		panic(errors.New(DbConnectionError))
-		break
 	case "dummy-db":
 		dd := &DummyDialector{}
 		dd.On("Initialize", mock.Anything).Return(nil)

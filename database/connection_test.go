@@ -24,6 +24,7 @@ func TestConnectToDB(t *testing.T) {
 		application := App{TDatabaseMock: databaseMock}
 		if testCase.isConnectionEstablished {
 			connOk := application.ConnectToDB(testCase.dsn)
+			connOk = application.ConnectToDB(testCase.dsn) // line duplicated on purpose
 			assert.Equal(t, testCase.driverName, application.GetDB().Dialector.Name())
 			if testCase.migrationPanics {
 				assert.Panics(t, func() {
