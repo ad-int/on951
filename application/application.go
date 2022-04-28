@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/joho/godotenv"
 	"github.com/pascaldekloe/jwt"
-	"io/fs"
 	"log"
 	"on951/api"
 	"on951/database"
@@ -34,7 +33,6 @@ type IApplicationRepository interface {
 type IApplication interface {
 	GetConfigValue(key string) string
 	GetImagesDir() string
-	InitImagesDir() string
 	InitDb() bool
 	GetDatabase() database.IDatabase
 	ReadEnvFile() (bool, map[string]string)
@@ -187,23 +185,6 @@ func (app *TApplication) GetImagesDir() string {
 	fi, err := os.Stat(iDir)
 	if err != nil {
 		log.Println(err)
-		return ""
-	}
-	if !fi.IsDir() {
-		return ""
-	}
-	return iDir
-}
-func (app *TApplication) InitImagesDir() string {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Println(err)
-		return ""
-	}
-	iDir := filepath.Join(dir, app.ImagesDir)
-	err = os.Mkdir(iDir, fs.ModeDir)
-	fi, err := os.Stat(iDir)
-	if err != nil {
 		return ""
 	}
 	if !fi.IsDir() {
