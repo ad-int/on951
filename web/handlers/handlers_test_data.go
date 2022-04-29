@@ -61,6 +61,22 @@ var testHandlersData = Handlers{
 			body:       `{"user":"guest", "password":"not-set"}`,
 			statusCode: 500,
 		},
+		{
+			appConfig: map[string]string{
+				"SECRET":                      "123",
+				"ISSUER":                      "localhost",
+				"AUDIENCE":                    "general",
+				"BCRYPT_HASH_GENERATION_COST": "14",
+			},
+			method:     "POST",
+			requestURI: "//token",
+			params:     gin.Params{},
+			statusCode: 400,
+			response: models.Response{
+				Code: 400,
+				Body: "missing or invalid body",
+			},
+		},
 	},
 	GetArticle: []TestCase{
 		{

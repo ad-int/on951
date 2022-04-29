@@ -18,7 +18,11 @@ import (
 func GetToken(ctx *gin.Context) {
 
 	authTokenRequest := &models.AuthTokenRequest{}
-	_ = ctx.BindJSON(authTokenRequest)
+	err := ctx.BindJSON(authTokenRequest)
+	if err != nil {
+		web.WriteBadRequestError(ctx, "missing or invalid body", err)
+		return
+	}
 
 	audience := ctx.DefaultQuery("audience", application.GetApplication().GetConfigValue("AUDIENCE"))
 	issuer := ctx.DefaultQuery("issuer", application.GetApplication().GetConfigValue("ISSUER"))
