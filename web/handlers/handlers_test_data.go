@@ -58,7 +58,7 @@ var testHandlersData = Handlers{
 			method:     "POST",
 			requestURI: "//token",
 			params:     gin.Params{},
-			body:       `{"user":"guest", "password":"not-set"}`,
+			body:       `{"username":"guest", "password":"not-set"}`,
 			statusCode: 200,
 		},
 		{
@@ -71,7 +71,7 @@ var testHandlersData = Handlers{
 			method:     "POST",
 			requestURI: "//token",
 			params:     gin.Params{},
-			body:       `{"user":"guest", "password":"not-set"}`,
+			body:       `{"username":"guest", "password":"not-set"}`,
 			statusCode: 500,
 		},
 		{
@@ -100,11 +100,28 @@ var testHandlersData = Handlers{
 			method:     "POST",
 			requestURI: "//token",
 			params:     gin.Params{},
-			body:       `{"user":"gue\ux0FFFFst", "password":"not-set"}`,
+			body:       `{"username":"gue\uxFFFFst", "password":"not-set"}`,
 			statusCode: 400,
 			response: models.Response{
 				Code: 400,
 				Body: "missing or invalid body",
+			},
+		},
+		{
+			appConfig: map[string]string{
+				"SECRET":                      "123",
+				"ISSUER":                      "localhost",
+				"AUDIENCE":                    "general",
+				"BCRYPT_HASH_GENERATION_COST": "14",
+			},
+			method:     "POST",
+			requestURI: "//token",
+			params:     gin.Params{},
+			body:       `{"username":"guest"}`,
+			statusCode: 400,
+			response: models.Response{
+				Code: 400,
+				Body: "missing credentials",
 			},
 		},
 	},

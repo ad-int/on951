@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"on951/application"
+	"on951/database"
 	"on951/models"
 	"on951/web/handlers"
 	"testing"
@@ -17,6 +18,7 @@ import (
 type middlewareTestSuite struct {
 	suite.Suite
 	context  *gin.Context
+	db       database.TDatabaseMock
 	recorder *httptest.ResponseRecorder
 }
 
@@ -25,6 +27,9 @@ func (suite *middlewareTestSuite) BeforeTest(suiteName, testName string) {
 	suite.context, _ = gin.CreateTestContext(suite.recorder)
 	body := ioutil.NopCloser(bytes.NewReader([]byte(`{"username":"guest'","password":"not-set"}`)))
 	suite.context.Request = httptest.NewRequest("POST", "//token", body)
+	suite.db.On("ConnectToDB", "dummy").Return(true)
+	suite.Assert().True(suite.db.ConnectToDB("dummy"), "Connecting to in-memory DB")
+	suite.db.AutoMigrate()
 }
 
 func TestMiddlewareTestSuite(t *testing.T) {
@@ -34,6 +39,7 @@ func TestMiddlewareTestSuite(t *testing.T) {
 func (suite *middlewareTestSuite) TestApiAuthCheck() {
 
 	app := &application.TApplicationMock{}
+	app.SetDB(&suite.db)
 
 	app.On("GetConfigValue", "AUDIENCE").Return("general")
 	app.On("GetConfigValue", "ISSUER").Return("localhost")
@@ -62,6 +68,8 @@ func (suite *middlewareTestSuite) TestApiAuthCheckThatFails() {
 	app.On("GetConfigValue", "ISSUER").Return("localhost")
 	app.On("GetConfigValue", "SECRET").Return("234")
 	app.On("GetConfigValue", "BCRYPT_HASH_GENERATION_COST").Return("14")
+
+	app.SetDB(&suite.db)
 
 	application.SetApplication(app)
 	handlers.GetToken(suite.context)

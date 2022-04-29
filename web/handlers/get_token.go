@@ -12,6 +12,7 @@ import (
 	"on951/models"
 	"on951/web"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -24,6 +25,11 @@ func GetToken(ctx *gin.Context) {
 		return
 	}
 
+	if strings.TrimSpace(authTokenRequest.Username) == "" || strings.TrimSpace(authTokenRequest.Password) == "" {
+		web.WriteBadRequestError(ctx, "missing credentials")
+		return
+	}
+	log.Println(authTokenRequest)
 	audience := ctx.DefaultQuery("audience", application.GetApplication().GetConfigValue("AUDIENCE"))
 	issuer := ctx.DefaultQuery("issuer", application.GetApplication().GetConfigValue("ISSUER"))
 
@@ -34,12 +40,31 @@ func GetToken(ctx *gin.Context) {
 		web.WriteMessage(ctx, http.StatusInternalServerError, "unable to generate token", err)
 		return
 	}
+	if gin.Mode() == gin.DebugMode {
+		u2 := dbStructure.User{
+			Name:     authTokenRequest.Username,
+			Password: string(hash),
+		}
+		application.GetApplication().GetDatabase().
+			GetDB().Create(&u2)
+	}
+	user := dbStructure.User{}
+	tx := application.GetApplication().GetDatabase().
+		GetDB().
+		Debug().
+		Where("name LIKE ?", authTokenRequest.Username).
+		First(&user)
 
-	userRecord, _ := json.Marshal(dbStructure.User{
-		Id:       1,
-		Name:     authTokenRequest.Username,
-		Password: string(hash),
-	})
+	if tx.RowsAffected == 0 {
+		user.Name = authTokenRequest.Username
+		user.Password = string(hash)
+	}
+	e := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(authTokenRequest.Password))
+	if e != nil {
+		web.WriteMessage(ctx, http.StatusUnauthorized, "invalid login")
+		return
+	}
+	userRecord, _ := json.Marshal(user)
 
 	var claims jwt.Claims
 	claims.Subject = string(userRecord)

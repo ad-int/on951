@@ -3,8 +3,8 @@ package structure
 const TableArticles = "articles"
 
 type User struct {
-	Id       uint
-	Name     string
+	Id       uint   `gorm:"primaryKey"`
+	Name     string `gorm:"uniqueIndex"`
 	Password string
 	Articles []Article `gorm:"foreignKey:AuthorId; references:Id"`
 	Comments []Comment `gorm:"foreignKey:UserId; references:Id"`

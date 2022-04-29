@@ -48,6 +48,12 @@ func TestHandlersTestSuite(t *testing.T) {
 func (suite *handlersTestSuite) getNewAuthToken(cost int) string {
 	app := &application.TApplicationMock{}
 
+	suite.db.On("ConnectToDB", "dummy").Return(true)
+	suite.Assert().True(suite.db.ConnectToDB("dummy"), "Connecting to in-memory DB")
+
+	suite.db.AutoMigrate()
+	app.SetDB(&suite.db)
+
 	app.On("GetConfigValue", "AUDIENCE").Return("general")
 	app.On("GetConfigValue", "ISSUER").Return("localhost")
 	app.On("GetConfigValue", "SECRET").Return("234")
