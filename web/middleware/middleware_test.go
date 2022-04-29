@@ -1,12 +1,13 @@
 package middleware
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"on951/application"
 	"on951/models"
 	"on951/web/handlers"
@@ -22,21 +23,8 @@ type middlewareTestSuite struct {
 func (suite *middlewareTestSuite) BeforeTest(suiteName, testName string) {
 	suite.recorder = httptest.NewRecorder()
 	suite.context, _ = gin.CreateTestContext(suite.recorder)
-	suite.context.Request = &http.Request{
-		Method: "GET",
-		URL: &url.URL{
-			Scheme:      "",
-			Opaque:      "",
-			User:        nil,
-			Host:        "",
-			Path:        "",
-			RawPath:     "",
-			ForceQuery:  false,
-			RawQuery:    "user=guest&password=p123",
-			Fragment:    "",
-			RawFragment: "",
-		},
-	}
+	body := ioutil.NopCloser(bytes.NewReader([]byte(`{"username":"guest'","password":"not-set"}`)))
+	suite.context.Request = httptest.NewRequest("POST", "//token", body)
 }
 
 func TestMiddlewareTestSuite(t *testing.T) {
@@ -59,21 +47,7 @@ func (suite *middlewareTestSuite) TestApiAuthCheck() {
 	_ = json.Unmarshal(suite.recorder.Body.Bytes(), &authToken)
 
 	context, _ := gin.CreateTestContext(httptest.NewRecorder())
-	context.Request = &http.Request{
-		Method: "GET",
-		URL: &url.URL{
-			Scheme:      "",
-			Opaque:      "",
-			User:        nil,
-			Host:        "",
-			Path:        "",
-			RawPath:     "",
-			ForceQuery:  false,
-			RawQuery:    "",
-			Fragment:    "",
-			RawFragment: "",
-		},
-	}
+	context.Request = httptest.NewRequest("", "//", nil)
 	context.Request.Header = http.Header{}
 	context.Request.Header.Set("Authorization", authToken.GetAuthorizationString())
 	ApiAuthCheck(context)
@@ -96,21 +70,8 @@ func (suite *middlewareTestSuite) TestApiAuthCheckThatFails() {
 	_ = json.Unmarshal(suite.recorder.Body.Bytes(), &authToken)
 
 	context, _ := gin.CreateTestContext(httptest.NewRecorder())
-	context.Request = &http.Request{
-		Method: "GET",
-		URL: &url.URL{
-			Scheme:      "",
-			Opaque:      "",
-			User:        nil,
-			Host:        "",
-			Path:        "",
-			RawPath:     "",
-			ForceQuery:  false,
-			RawQuery:    "",
-			Fragment:    "",
-			RawFragment: "",
-		},
-	}
+	context.Request = httptest.NewRequest("", "//", nil)
+
 	context.Request.Header = http.Header{}
 	context.Request.Header.Set("Authorization", authToken.GetAuthorizationString()+"fail!!!")
 	ApiAuthCheck(context)
