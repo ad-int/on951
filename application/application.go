@@ -63,7 +63,12 @@ func (app *TApplication) GetDatabase() database.IDatabase {
 }
 func (applicationRepository *TApplicationRepository) GetApplication() IApplication {
 	if applicationRepository.application == nil {
-		applicationRepository.application = &TApplication{ConfigFilePath: ".env", ImagesDir: ImagesDirectory, db: &database.TDatabase{}}
+		applicationRepository.application = &TApplication{
+			ConfigFilePath: ".env",
+			ImagesDir:      ImagesDirectory,
+			db:             &database.TDatabase{},
+			router:         &router.TAppRouter{},
+		}
 	}
 	return applicationRepository.application
 }
