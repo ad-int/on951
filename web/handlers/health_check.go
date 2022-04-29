@@ -11,8 +11,8 @@ const MsgAllGood = "All good"
 
 func HealthCheck(ctx *gin.Context) {
 	var rsp = models.Response{
-		Code: 202,
+		Code: 200,
 		Body: MsgAllGood,
 	}
-	web.Write(ctx, http.StatusAccepted, rsp)
+	web.Write(ctx, http.StatusOK, rsp)
 }

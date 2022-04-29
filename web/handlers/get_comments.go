@@ -46,6 +46,6 @@ func GetComments(ctx *gin.Context) {
 		web.WriteMessage(ctx, http.StatusNotFound, "Empty :(")
 		return
 	}
-	web.Write(ctx, http.StatusAccepted, article)
+	web.Write(ctx, http.StatusOK, article)
 
 }

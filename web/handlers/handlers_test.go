@@ -10,12 +10,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"on951/api"
 	"on951/application"
 	"on951/database"
 	dbStructure "on951/database/structure"
 	"on951/image_links_parser"
+	"on951/models"
 	"os"
 	"strconv"
 	"testing"
@@ -57,24 +57,12 @@ func (suite *handlersTestSuite) getNewAuthToken(cost int) string {
 	application.SetApplication(app)
 	aRecorder := httptest.NewRecorder()
 	aContext, _ := gin.CreateTestContext(aRecorder)
-	aContext.Request = &http.Request{
-		Method: "GET",
-		URL: &url.URL{
-			Scheme:      "",
-			Opaque:      "",
-			User:        nil,
-			Host:        "",
-			Path:        "",
-			RawPath:     "",
-			ForceQuery:  false,
-			RawQuery:    "user=guest&password=p123",
-			Fragment:    "",
-			RawFragment: "",
-		},
-	}
+	aContext.Request = httptest.NewRequest("GET", "//token?user=guest&password=not-set", nil)
 	GetToken(aContext)
 	application.SetApplication(oldApp)
-	return aRecorder.Body.String()
+	authToken := models.AuthTokenResponse{}
+	_ = json.Unmarshal(aRecorder.Body.Bytes(), &authToken)
+	return authToken.GetAuthorizationString()
 }
 
 func (suite *handlersTestSuite) prepare(testCase TestCase, requiresLogin bool, handlerFunc ...func(ctx *gin.Context)) {
@@ -123,6 +111,13 @@ func (suite *handlersTestSuite) prepare(testCase TestCase, requiresLogin bool, h
 	app.SetDB(&suite.db)
 	app.SetArticlesRepo(suite.articlesRepo)
 	app.On("GetImagesDir").Return(testCase.imagesDir)
+
+	if testCase.appConfig != nil {
+		for key, value := range testCase.appConfig {
+			app.On("GetConfigValue", key).Return(value)
+		}
+	}
+
 	application.SetApplication(app)
 	suite.IsType(&application.TApplicationMock{}, application.GetApplication())
 	suite.context.Params = testCase.params
@@ -136,14 +131,14 @@ func (suite *handlersTestSuite) prepare(testCase TestCase, requiresLogin bool, h
 	suite.context.Request = httptest.NewRequest(testCase.method, testCase.requestURI, body)
 	if requiresLogin {
 
+		token := suite.getNewAuthToken(testCase.bcryptHashGenerationCost)
+
 		app.On("GetConfigValue", "AUDIENCE").Return("general")
 		app.On("GetConfigValue", "ISSUER").Return("localhost")
 		app.On("GetConfigValue", "SECRET").Return("234")
 
-		token := suite.getNewAuthToken(testCase.bcryptHashGenerationCost)
-
 		suite.context.Request.Header = http.Header{}
-		suite.context.Request.Header.Set("Authorization", "Bearer "+token)
+		suite.context.Request.Header.Set("Authorization", token)
 	}
 	for _, hFunc := range handlerFunc {
 		hFunc(suite.context)
@@ -153,9 +148,12 @@ func (suite *handlersTestSuite) prepare(testCase TestCase, requiresLogin bool, h
 		}
 	}
 
-	jsonBytes, err := json.MarshalIndent(testCase.response, "", "    ")
-	suite.Nil(err)
-	suite.Equal(string(jsonBytes)+"\r\n", suite.recorder.Body.String())
+	suite.Equal(testCase.statusCode, suite.context.Writer.Status())
+	if testCase.response != nil {
+		jsonBytes, err := json.MarshalIndent(testCase.response, "", "    ")
+		suite.Nil(err)
+		suite.Equal(string(jsonBytes)+"\r\n", suite.recorder.Body.String())
+	}
 	suite.db.DisconnectDB()
 	suite.Nil(application.GetApplication().GetDatabase().GetDB(), "disconnecting in-memory DB")
 
@@ -201,6 +199,11 @@ func (suite *handlersTestSuite) TestGetComments() {
 func (suite *handlersTestSuite) TestHealthCheck() {
 	for _, testCase := range testHandlersData.HealthCheck {
 		suite.prepare(testCase, false, HealthCheck)
+	}
+}
+func (suite *handlersTestSuite) TestGetToken() {
+	for _, testCase := range testHandlersData.GetToken {
+		suite.prepare(testCase, false, GetToken)
 	}
 }
 func (suite *handlersTestSuite) TestPutComment() {

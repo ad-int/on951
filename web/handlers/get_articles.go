@@ -39,6 +39,6 @@ func GetArticles(ctx *gin.Context) {
 	}
 	var articles []dbStructure.ArticleBriefInfo
 	articles = application.GetApplication().GetArticlesRepo().GetArticles(pageNo, pageSize)
-	web.Write(ctx, http.StatusAccepted, articles)
+	web.Write(ctx, http.StatusOK, articles)
 
 }

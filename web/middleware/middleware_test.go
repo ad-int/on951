@@ -1,12 +1,14 @@
 package middleware
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"on951/application"
+	"on951/models"
 	"on951/web/handlers"
 	"testing"
 )
@@ -53,7 +55,8 @@ func (suite *middlewareTestSuite) TestApiAuthCheck() {
 	application.SetApplication(app)
 	handlers.GetToken(suite.context)
 
-	token := suite.recorder.Body.String()
+	authToken := models.AuthTokenResponse{}
+	_ = json.Unmarshal(suite.recorder.Body.Bytes(), &authToken)
 
 	context, _ := gin.CreateTestContext(httptest.NewRecorder())
 	context.Request = &http.Request{
@@ -72,7 +75,7 @@ func (suite *middlewareTestSuite) TestApiAuthCheck() {
 		},
 	}
 	context.Request.Header = http.Header{}
-	context.Request.Header.Set("Authorization", "Bearer "+token)
+	context.Request.Header.Set("Authorization", authToken.GetAuthorizationString())
 	ApiAuthCheck(context)
 	suite.NotEqual(context.Writer.Status(), http.StatusUnauthorized)
 }
@@ -89,7 +92,8 @@ func (suite *middlewareTestSuite) TestApiAuthCheckThatFails() {
 	application.SetApplication(app)
 	handlers.GetToken(suite.context)
 
-	token := suite.recorder.Body.String()
+	authToken := models.AuthTokenResponse{}
+	_ = json.Unmarshal(suite.recorder.Body.Bytes(), &authToken)
 
 	context, _ := gin.CreateTestContext(httptest.NewRecorder())
 	context.Request = &http.Request{
@@ -108,7 +112,7 @@ func (suite *middlewareTestSuite) TestApiAuthCheckThatFails() {
 		},
 	}
 	context.Request.Header = http.Header{}
-	context.Request.Header.Set("Authorization", "Bearer "+token+"fail!!!")
+	context.Request.Header.Set("Authorization", authToken.GetAuthorizationString()+"fail!!!")
 	ApiAuthCheck(context)
 	suite.Equal(context.Writer.Status(), http.StatusUnauthorized)
 }

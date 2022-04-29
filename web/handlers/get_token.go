@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"on951/application"
 	dbStructure "on951/database/structure"
+	"on951/models"
 	"on951/web"
 	"strconv"
 	"time"
@@ -52,12 +53,12 @@ func GetToken(ctx *gin.Context) {
 	jwtBytes, err = claims.HMACSign(jwt.HS512, []byte(application.GetApplication().GetConfigValue("SECRET")))
 	if err != nil {
 		web.WriteMessage(ctx, http.StatusInternalServerError, "internal server error", err)
+		return
 	}
 
-	ctx.Status(http.StatusOK)
-	_, e := ctx.Writer.Write(jwtBytes)
-	if e != nil {
-		log.Println(e)
-	}
-
+	authTokenResponse := models.AuthTokenResponse{}
+	authTokenResponse.AccessToken = string(jwtBytes)
+	authTokenResponse.TokenType = "Bearer"
+	authTokenResponse.ExpiresIn = 3600
+	ctx.IndentedJSON(http.StatusOK, authTokenResponse)
 }
