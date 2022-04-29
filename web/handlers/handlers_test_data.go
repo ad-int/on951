@@ -50,6 +50,19 @@ var testHandlersData = Handlers{
 	GetToken: []TestCase{
 		{
 			appConfig: map[string]string{
+				"SECRET":                      "123",
+				"ISSUER":                      "localhost",
+				"AUDIENCE":                    "general",
+				"BCRYPT_HASH_GENERATION_COST": "14",
+			},
+			method:     "POST",
+			requestURI: "//token",
+			params:     gin.Params{},
+			body:       `{"user":"guest", "password":"not-set"}`,
+			statusCode: 200,
+		},
+		{
+			appConfig: map[string]string{
 				"SECRET":                      "",
 				"ISSUER":                      "localhost",
 				"AUDIENCE":                    "general",
