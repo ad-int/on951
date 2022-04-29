@@ -57,7 +57,8 @@ func (suite *handlersTestSuite) getNewAuthToken(cost int) string {
 	application.SetApplication(app)
 	aRecorder := httptest.NewRecorder()
 	aContext, _ := gin.CreateTestContext(aRecorder)
-	aContext.Request = httptest.NewRequest("GET", "//token?user=guest&password=not-set", nil)
+	body := ioutil.NopCloser(bytes.NewReader([]byte(`{"username":"guest","password":"not-set"}`)))
+	aContext.Request = httptest.NewRequest("GET", "//token", body)
 	GetToken(aContext)
 	application.SetApplication(oldApp)
 	authToken := models.AuthTokenResponse{}

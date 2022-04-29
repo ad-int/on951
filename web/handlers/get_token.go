@@ -17,14 +17,15 @@ import (
 
 func GetToken(ctx *gin.Context) {
 
-	user := ctx.DefaultQuery("user", "guest")
-	password := ctx.DefaultQuery("password", "not-set")
+	authTokenRequest := &models.AuthTokenRequest{}
+	_ = ctx.BindJSON(authTokenRequest)
+
 	audience := ctx.DefaultQuery("audience", application.GetApplication().GetConfigValue("AUDIENCE"))
 	issuer := ctx.DefaultQuery("issuer", application.GetApplication().GetConfigValue("ISSUER"))
 
 	cost, _ := strconv.Atoi(application.GetApplication().GetConfigValue("BCRYPT_HASH_GENERATION_COST"))
 	log.Println("cost", cost)
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), cost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(authTokenRequest.Password), cost)
 	if err != nil {
 		web.WriteMessage(ctx, http.StatusInternalServerError, "unable to generate token", err)
 		return
@@ -32,7 +33,7 @@ func GetToken(ctx *gin.Context) {
 
 	userRecord, err := json.Marshal(dbStructure.User{
 		Id:       1,
-		Name:     user,
+		Name:     authTokenRequest.Username,
 		Password: string(hash),
 	})
 

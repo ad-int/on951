@@ -15,10 +15,6 @@ var DefinedRoutes = map[string]router.TRoutesList{
 			Name:    "Health Check",
 			Handler: handlers.HealthCheck,
 		},
-		"token": {
-			Name:    "Get token",
-			Handler: handlers.GetToken,
-		},
 		"articles": {
 			Name:        "List articles",
 			Handler:     handlers.GetArticles,
@@ -40,6 +36,12 @@ var DefinedRoutes = map[string]router.TRoutesList{
 			Name:        "Post a comment",
 			Handler:     handlers.PutComment,
 			Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
+		},
+	},
+	http.MethodPost: {
+		"token": {
+			Name:    "Get token",
+			Handler: handlers.GetToken,
 		},
 	},
 }
