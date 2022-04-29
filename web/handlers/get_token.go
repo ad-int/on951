@@ -35,16 +35,11 @@ func GetToken(ctx *gin.Context) {
 		return
 	}
 
-	userRecord, err := json.Marshal(dbStructure.User{
+	userRecord, _ := json.Marshal(dbStructure.User{
 		Id:       1,
 		Name:     authTokenRequest.Username,
 		Password: string(hash),
 	})
-
-	if err != nil {
-		web.WriteMessage(ctx, http.StatusInternalServerError, "internal server error", err)
-		return
-	}
 
 	var claims jwt.Claims
 	claims.Subject = string(userRecord)
