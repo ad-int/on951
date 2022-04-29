@@ -23,16 +23,19 @@ var DefinedRoutes = map[string]router.TRoutesList{
 		"articles": {
 			Name:        "List articles",
 			Handler:     handlers.GetArticles,
+			Group:       "/",
 			Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
 		},
 		"comments": {
 			Name:        "List comments",
 			Handler:     handlers.GetComments,
+			Group:       "/",
 			Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
 		},
 		"article/:article_id": {
 			Name:        "Get specific article",
 			Handler:     handlers.GetArticle,
+			Group:       "/",
 			Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
 		},
 	},
@@ -40,6 +43,7 @@ var DefinedRoutes = map[string]router.TRoutesList{
 		"comment/:article_id": {
 			Name:        "Post a comment",
 			Handler:     handlers.PutComment,
+			Group:       "/",
 			Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
 		},
 	},
