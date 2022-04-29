@@ -76,6 +76,7 @@ func validateImage(mimeType string, encoding string, encodedImage string) (bool,
 		break
 	case "image/jpeg":
 		_, err = jpeg.Decode(bytes.NewReader(decodeImage))
+		extensions[0] = ".jpg" // overwrite strange extensions such as '.jfif' or '.jpe'
 		if err != nil {
 			return false, "", nil
 		}
