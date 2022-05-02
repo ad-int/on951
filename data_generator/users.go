@@ -20,10 +20,11 @@ func GenerateUser(name string, password string, cost int) error {
 		Name:     name,
 		Password: string(hash),
 	}
-	log.Println(user)
-	tx := application.GetApplication().GetDatabase().
-		GetDB().FirstOrCreate(&user)
-	log.Println(user)
+	tx := application.GetApplication().
+		GetDatabase().
+		GetDB().
+		Debug().
+		FirstOrCreate(&user)
 	if tx.RowsAffected < 1 {
 		return errors.New("could not find or create a user")
 	}
