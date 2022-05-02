@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"on951/api"
 	"on951/application"
+	"on951/data_generator"
 	"on951/database"
 	dbStructure "on951/database/structure"
 	"on951/image_links_parser"
@@ -45,7 +46,16 @@ func TestHandlersTestSuite(t *testing.T) {
 	suite.Run(t, new(handlersTestSuite))
 }
 
-func (suite *handlersTestSuite) getNewAuthToken(cost int) string {
+func (suite *handlersTestSuite) SetupSuite() {
+	suite.db.On("ConnectToDB", "dummy").Return(true)
+	suite.Assert().True(suite.db.ConnectToDB("dummy"), "Connecting to in-memory DB")
+	app := &application.TApplicationMock{}
+	suite.db.AutoMigrate()
+	app.SetDB(&suite.db)
+	application.SetApplication(app)
+	_ = data_generator.GenerateUser("guest", "not-set", 14)
+}
+func (suite *handlersTestSuite) getNewAuthToken() string {
 	app := &application.TApplicationMock{}
 
 	suite.db.On("ConnectToDB", "dummy").Return(true)
@@ -57,13 +67,12 @@ func (suite *handlersTestSuite) getNewAuthToken(cost int) string {
 	app.On("GetConfigValue", "AUDIENCE").Return("general")
 	app.On("GetConfigValue", "ISSUER").Return("localhost")
 	app.On("GetConfigValue", "SECRET").Return("234")
-	app.On("GetConfigValue", "BCRYPT_HASH_GENERATION_COST").Return(strconv.Itoa(cost))
 
 	oldApp := application.GetApplication()
 	application.SetApplication(app)
 	aRecorder := httptest.NewRecorder()
 	aContext, _ := gin.CreateTestContext(aRecorder)
-	body := ioutil.NopCloser(bytes.NewReader([]byte(`{"username":"guest'","password":"not-set"}`)))
+	body := ioutil.NopCloser(bytes.NewReader([]byte(`{"username":"guest","password":"not-set"}`)))
 	aContext.Request = httptest.NewRequest("GET", "//token", body)
 	GetToken(aContext)
 	application.SetApplication(oldApp)
@@ -72,7 +81,7 @@ func (suite *handlersTestSuite) getNewAuthToken(cost int) string {
 	return authToken.GetAuthorizationString()
 }
 
-func (suite *handlersTestSuite) prepare(testCase TestCase, requiresLogin bool, handlerFunc ...func(ctx *gin.Context)) {
+func (suite *handlersTestSuite) prepare(testCase TestCase, handlerFunc ...func(ctx *gin.Context)) {
 
 	suite.recorder = httptest.NewRecorder()
 	suite.context, _ = gin.CreateTestContext(suite.recorder)
@@ -136,9 +145,9 @@ func (suite *handlersTestSuite) prepare(testCase TestCase, requiresLogin bool, h
 		body = ioutil.NopCloser(bytes.NewReader([]byte(testCase.body)))
 	}
 	suite.context.Request = httptest.NewRequest(testCase.method, testCase.requestURI, body)
-	if requiresLogin {
+	if testCase.requiresLogin {
 
-		token := suite.getNewAuthToken(testCase.bcryptHashGenerationCost)
+		token := suite.getNewAuthToken()
 
 		app.On("GetConfigValue", "AUDIENCE").Return("general")
 		app.On("GetConfigValue", "ISSUER").Return("localhost")
@@ -179,7 +188,7 @@ func (suite *handlersTestSuite) TestGenerateArticles() {
 	app.SetArticlesRepo(suite.articlesRepo)
 	application.SetApplication(app)
 	suite.IsType(&application.TApplicationMock{}, application.GetApplication())
-	Generate()
+	data_generator.GenerateArticle()
 	articles := application.GetApplication().GetArticlesRepo().GetArticles(1, 20)
 	suite.Len(articles, 1)
 	suite.db.DisconnectDB()
@@ -189,35 +198,36 @@ func (suite *handlersTestSuite) TestGenerateArticles() {
 
 func (suite *handlersTestSuite) TestGetArticle() {
 	for _, testCase := range testHandlersData.GetArticle {
-		suite.prepare(testCase, true, GetArticle)
+		suite.prepare(testCase, GetArticle)
 	}
 }
 
 func (suite *handlersTestSuite) TestGetArticles() {
 	for _, testCase := range testHandlersData.GetArticles {
-		suite.prepare(testCase, true, GetArticles)
+		suite.prepare(testCase, GetArticles)
 	}
 }
 func (suite *handlersTestSuite) TestGetComments() {
 	for _, testCase := range testHandlersData.GetComments {
-		suite.prepare(testCase, true, GetComments)
+		suite.prepare(testCase, GetComments)
 	}
 }
 func (suite *handlersTestSuite) TestHealthCheck() {
 	for _, testCase := range testHandlersData.HealthCheck {
-		suite.prepare(testCase, false, HealthCheck)
+		suite.prepare(testCase, HealthCheck)
 	}
 }
 func (suite *handlersTestSuite) TestGetToken() {
+	suite.prepare(testHandlersData.GetToken[0], GetToken)
 	for _, testCase := range testHandlersData.GetToken {
-		suite.prepare(testCase, false, GetToken)
+		suite.prepare(testCase, GetToken)
 	}
 }
 func (suite *handlersTestSuite) TestPutComment() {
 	for _, testCase := range testHandlersData.PutComment {
-		suite.prepare(testCase, true, PutComment)
+		suite.prepare(testCase, PutComment)
 		if testCase.check != nil {
-			suite.prepare(testCase.check.(TestCase), true, GetComments)
+			suite.prepare(testCase.check.(TestCase), GetComments)
 		}
 
 	}

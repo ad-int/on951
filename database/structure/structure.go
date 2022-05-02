@@ -4,7 +4,7 @@ const TableArticles = "articles"
 
 type User struct {
 	Id       uint   `gorm:"primaryKey"`
-	Name     string `gorm:"uniqueIndex"`
+	Name     string `gorm:"uniqueIndex; not null;default: null"`
 	Password string
 	Articles []Article `gorm:"foreignKey:AuthorId; references:Id"`
 	Comments []Comment `gorm:"foreignKey:UserId; references:Id"`

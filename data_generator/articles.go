@@ -1,4 +1,4 @@
-package handlers
+package data_generator
 
 import (
 	"math/rand"
@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func Generate() {
+func GenerateArticle() {
 	db := application.GetApplication().GetDatabase().GetDB()
 
 	rand.Seed(time.Now().UnixNano())

@@ -26,6 +26,7 @@ type TestCase struct {
 	response                 interface{}
 	statusCode               int
 	check                    interface{}
+	requiresLogin            bool
 	bcryptHashGenerationCost int
 	incorrectBody            bool
 	imagesDir                string
@@ -129,6 +130,7 @@ var testHandlersData = Handlers{
 		{
 			method:            "GET",
 			requestURI:        "//article",
+			requiresLogin:     true,
 			totalArticlesInDb: 20,
 			params: gin.Params{
 				{Key: "article_id", Value: "3"},
@@ -142,17 +144,19 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			requestURI: "//article",
-			params:     gin.Params{},
-			statusCode: 400,
+			requestURI:    "//article",
+			requiresLogin: true,
+			params:        gin.Params{},
+			statusCode:    400,
 			response: models.Response{
 				Code: 400,
 				Body: "Specify article ID",
 			},
 		},
 		{
-			method:     "GET",
-			requestURI: "//article",
+			method:        "GET",
+			requestURI:    "//article",
+			requiresLogin: true,
 			params: gin.Params{
 				{Key: "article_id", Value: "15bad-id"},
 			},
@@ -163,8 +167,9 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			method:     "GET",
-			requestURI: "//article",
+			method:        "GET",
+			requestURI:    "//article",
+			requiresLogin: true,
 			params: gin.Params{
 				{Key: "article_id", Value: "21"},
 			},
@@ -179,6 +184,7 @@ var testHandlersData = Handlers{
 		{
 			method:            "GET",
 			requestURI:        "//articles",
+			requiresLogin:     true,
 			params:            gin.Params{},
 			totalArticlesInDb: 5,
 			statusCode:        200,
@@ -208,6 +214,7 @@ var testHandlersData = Handlers{
 		{
 			method:            "GET",
 			requestURI:        "//articles?page0&page_size=0",
+			requiresLogin:     true,
 			params:            gin.Params{},
 			totalArticlesInDb: 5,
 			statusCode:        200,
@@ -237,6 +244,7 @@ var testHandlersData = Handlers{
 		{
 			method:            "GET",
 			requestURI:        "//articles?page_size=2",
+			requiresLogin:     true,
 			params:            gin.Params{},
 			totalArticlesInDb: 5,
 			statusCode:        200,
@@ -254,6 +262,7 @@ var testHandlersData = Handlers{
 		{
 			method:            "GET",
 			requestURI:        "//articles?page=3&page_size=2",
+			requiresLogin:     true,
 			params:            gin.Params{},
 			totalArticlesInDb: 5,
 			statusCode:        200,
@@ -267,6 +276,7 @@ var testHandlersData = Handlers{
 		{
 			method:            "GET",
 			requestURI:        "//articles?page=&page_size=",
+			requiresLogin:     true,
 			params:            gin.Params{},
 			totalArticlesInDb: 5,
 			statusCode:        200,
@@ -296,6 +306,7 @@ var testHandlersData = Handlers{
 		{
 			method:            "GET",
 			requestURI:        "//articles?page=3b&page_size=2a",
+			requiresLogin:     true,
 			params:            gin.Params{},
 			totalArticlesInDb: 5,
 			statusCode:        400,
@@ -307,6 +318,7 @@ var testHandlersData = Handlers{
 		{
 			method:            "GET",
 			requestURI:        "//articles?page=3&page_size=2a",
+			requiresLogin:     true,
 			params:            gin.Params{},
 			totalArticlesInDb: 5,
 			statusCode:        400,
@@ -318,8 +330,9 @@ var testHandlersData = Handlers{
 	},
 	GetComments: []TestCase{
 		{
-			method:     "GET",
-			requestURI: "//comments",
+			method:        "GET",
+			requestURI:    "//comments",
+			requiresLogin: true,
 			params: gin.Params{
 				{Key: "article_id", Value: "3"},
 			},
@@ -335,8 +348,9 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			method:     "GET",
-			requestURI: "//comments",
+			method:        "GET",
+			requestURI:    "//comments",
+			requiresLogin: true,
 			params: gin.Params{
 				{Key: "article_id", Value: "5"},
 			},
@@ -386,8 +400,9 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			method:     "GET",
-			requestURI: "//comments",
+			method:        "GET",
+			requestURI:    "//comments",
+			requiresLogin: true,
 			params: gin.Params{
 				{Key: "article_id", Value: "3a"},
 			},
@@ -401,6 +416,7 @@ var testHandlersData = Handlers{
 		{
 			method:            "GET",
 			requestURI:        "//comments",
+			requiresLogin:     true,
 			params:            gin.Params{},
 			totalArticlesInDb: 5,
 			statusCode:        400,
@@ -410,8 +426,9 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			method:     "GET",
-			requestURI: "//comments?page=2&page_size=1",
+			method:        "GET",
+			requestURI:    "//comments?page=2&page_size=1",
+			requiresLogin: true,
 			params: gin.Params{
 				{Key: "article_id", Value: "5"},
 			},
@@ -450,8 +467,9 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			method:     "GET",
-			requestURI: "//comments?page=2a&page_size=1a",
+			method:        "GET",
+			requestURI:    "//comments?page=2a&page_size=1a",
+			requiresLogin: true,
 			params: gin.Params{
 				{Key: "article_id", Value: "5"},
 			},
@@ -478,8 +496,9 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			method:     "GET",
-			requestURI: "//comments",
+			method:        "GET",
+			requestURI:    "//comments",
+			requiresLogin: true,
 			params: gin.Params{
 				{Key: "article_id", Value: "6"},
 			},
@@ -506,8 +525,9 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			method:     "GET",
-			requestURI: "//comments?page=2&page_size=1a",
+			method:        "GET",
+			requestURI:    "//comments?page=2&page_size=1a",
+			requiresLogin: true,
 			params: gin.Params{
 				{Key: "article_id", Value: "5"},
 			},
@@ -538,6 +558,7 @@ var testHandlersData = Handlers{
 		{
 			method:                   "PUT",
 			requestURI:               "//comment",
+			requiresLogin:            true,
 			bcryptHashGenerationCost: 14,
 			totalArticlesInDb:        4,
 			imagesDir:                "images",
@@ -551,7 +572,8 @@ var testHandlersData = Handlers{
 				Body: "Thanks for commenting!",
 			},
 			check: TestCase{
-				requestURI: "//article",
+				requestURI:    "//article",
+				requiresLogin: true,
 				params: gin.Params{
 					{Key: "article_id", Value: "3"},
 				},
@@ -586,6 +608,7 @@ var testHandlersData = Handlers{
 		{
 			method:                   "PUT",
 			requestURI:               "//comment",
+			requiresLogin:            true,
 			bcryptHashGenerationCost: 14,
 			totalArticlesInDb:        4,
 			imagesDir:                "", // will fail because of there's no place to store images
@@ -600,9 +623,8 @@ var testHandlersData = Handlers{
 			},
 		},
 		{
-			method:                   "PUT",
-			requestURI:               "//comment",
-			bcryptHashGenerationCost: 9999,
+			method:     "PUT",
+			requestURI: "//comment",
 			params: gin.Params{
 				{Key: "article_id", Value: "3"},
 			},
@@ -616,6 +638,7 @@ var testHandlersData = Handlers{
 		{
 			method:                   "PUT",
 			requestURI:               "//comment",
+			requiresLogin:            true,
 			bcryptHashGenerationCost: 14,
 			totalArticlesInDb:        20,
 			params:                   gin.Params{},
@@ -629,6 +652,7 @@ var testHandlersData = Handlers{
 		{
 			method:                   "PUT",
 			requestURI:               "//comment",
+			requiresLogin:            true,
 			bcryptHashGenerationCost: 14,
 			totalArticlesInDb:        20,
 			params: gin.Params{
@@ -644,6 +668,7 @@ var testHandlersData = Handlers{
 		{
 			method:                   "PUT",
 			requestURI:               "//comment",
+			requiresLogin:            true,
 			bcryptHashGenerationCost: 14,
 			totalArticlesInDb:        20,
 			params: gin.Params{
@@ -659,6 +684,7 @@ var testHandlersData = Handlers{
 		{
 			method:                   "PUT",
 			requestURI:               "//comment",
+			requiresLogin:            true,
 			bcryptHashGenerationCost: 14,
 			totalArticlesInDb:        4,
 			imagesDir:                "images",

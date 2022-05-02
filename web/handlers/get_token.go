@@ -11,7 +11,6 @@ import (
 	dbStructure "on951/database/structure"
 	"on951/models"
 	"on951/web"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -33,32 +32,15 @@ func GetToken(ctx *gin.Context) {
 	audience := ctx.DefaultQuery("audience", application.GetApplication().GetConfigValue("AUDIENCE"))
 	issuer := ctx.DefaultQuery("issuer", application.GetApplication().GetConfigValue("ISSUER"))
 
-	cost, _ := strconv.Atoi(application.GetApplication().GetConfigValue("BCRYPT_HASH_GENERATION_COST"))
-	log.Println("cost", cost)
-	hash, err := bcrypt.GenerateFromPassword([]byte(authTokenRequest.Password), cost)
-	if err != nil {
-		web.WriteMessage(ctx, http.StatusInternalServerError, "unable to generate token", err)
-		return
-	}
-	if gin.Mode() == gin.DebugMode {
-		u2 := dbStructure.User{
-			Name:     authTokenRequest.Username,
-			Password: string(hash),
-		}
-		application.GetApplication().GetDatabase().
-			GetDB().Create(&u2)
-	}
 	user := dbStructure.User{}
-	tx := application.GetApplication().GetDatabase().
-		GetDB().
-		Debug().
-		Where("name LIKE ?", authTokenRequest.Username).
-		First(&user)
-
-	if tx.RowsAffected == 0 {
-		user.Name = authTokenRequest.Username
-		user.Password = string(hash)
+	if db := application.GetApplication().GetDatabase(); db != nil {
+		application.GetApplication().GetDatabase().
+			GetDB().
+			Debug().
+			Where(dbStructure.User{Name: authTokenRequest.Username}).
+			Find(&user)
 	}
+
 	e := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(authTokenRequest.Password))
 	if e != nil {
 		web.WriteMessage(ctx, http.StatusUnauthorized, "invalid login")
