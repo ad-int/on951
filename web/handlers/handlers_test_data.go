@@ -125,6 +125,23 @@ var testHandlersData = Handlers{
 				Body: "missing credentials",
 			},
 		},
+		{
+			appConfig: map[string]string{
+				"SECRET":                      "123",
+				"ISSUER":                      "localhost",
+				"AUDIENCE":                    "general",
+				"BCRYPT_HASH_GENERATION_COST": "14",
+			},
+			method:     "POST",
+			requestURI: "//token",
+			params:     gin.Params{},
+			body:       `{"username":"guest", "password":"different-password"}`,
+			statusCode: 401,
+			response: models.Response{
+				Code: 401,
+				Body: "invalid login",
+			},
+		},
 	},
 	GetArticle: []TestCase{
 		{
