@@ -12,7 +12,6 @@ import (
 	"image/png"
 	"io/fs"
 	"io/ioutil"
-	"log"
 	"mime"
 	"os"
 	"path/filepath"
@@ -120,7 +119,6 @@ func saveImage(imagePath string, mimeType string, encoding string, encodedImage 
 		return false, err
 	}
 	if _, statErr := os.Stat(imagePath); statErr == nil {
-		log.Println(imagePath, "already exists")
 		return true, errors.New(fmt.Sprintln(imagePath, "already exists"))
 	}
 	err = ioutil.WriteFile(imagePath, decodedImage, fs.ModePerm)
