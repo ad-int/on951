@@ -19,13 +19,6 @@ type TRouteDescription struct {
 	Middlewares []gin.HandlerFunc
 }
 
-type AppRouter interface {
-	InitRoutes(routes *map[string]TRoutesList)
-	GetEngine() *gin.Engine
-	Configure(trustedProxies []string, allowedHeaders []string, allowAllOrigins bool) error
-	Run() error
-}
-
 func (appRouter *TAppRouter) Configure(trustedProxies []string, allowedHeaders []string, allowAllOrigins bool) error {
 	appRouter.engine = gin.Default()
 	corsConfig := cors.DefaultConfig()
