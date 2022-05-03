@@ -1,2 +1,0 @@
-#!/bin/bash
-echo -n "Authorization: Bearer " > .auth && curl http://localhost:8080/token >> .auth
