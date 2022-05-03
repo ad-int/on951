@@ -25,8 +25,8 @@ type FakeRouter struct {
 	router.TAppRouter
 }
 
-func (rf *FakeRouter) Run() error {
-	args := rf.Called()
+func (rf *FakeRouter) Run(addr ...string) error {
+	args := rf.Called(addr)
 	return args.Error(0)
 }
 
@@ -130,7 +130,7 @@ func (suite *applicationTestSuite) TestInit() {
 	dbMock.On("ConnectToDB", "").Return(true)
 	fakeRouter := &FakeRouter{}
 	fakeRouter.On("Configure", mock.Anything).Return(nil)
-	fakeRouter.On("Run").Return(nil)
+	fakeRouter.On("Run", mock.Anything).Return(nil)
 	app := &TApplication{db: dbMock, router: fakeRouter}
 	suite.Nil(app.Init(&testApplicationData[0].routes))
 	suite.IsType(&FakeRouter{}, app.GetRouter())

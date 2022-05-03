@@ -54,12 +54,14 @@ May code be with you!
 DSN="test.db"
 SECRET="SECRET-FOR-TOKEN-GENERATION"
 ENV="release"
+HOST="localhost:8085"
 
 ```
 if `ENV` is not set then on application start: 
 * 20 test articles are inserted into DB
 * test user with username `user1` and password `password1` is created
 
+if no `HOST` is given, then default addr (`localhost`) will be used
 
 ###Used DB: SQLite
 

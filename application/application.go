@@ -126,7 +126,7 @@ func (app *TApplication) Init(routes *map[string]router.TRoutesList) error {
 		return err
 	}
 	app.router.InitRoutes(routes)
-	return app.router.Run()
+	return app.router.Run(app.GetConfigValue("HOST"))
 
 }
 

@@ -51,6 +51,6 @@ func (appRouter *TAppRouter) GetEngine() *gin.Engine {
 	return appRouter.engine
 }
 
-func (appRouter *TAppRouter) Run() error {
-	return appRouter.engine.Run()
+func (appRouter *TAppRouter) Run(addr ...string) error {
+	return appRouter.engine.Run(addr...)
 }
