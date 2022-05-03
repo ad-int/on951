@@ -63,9 +63,9 @@ if `ENV` is not set then on application start:
 
 if no `HOST` is given, then default addr (`localhost`) will be used
 
-###Used DB: SQLite
+### Used DB: SQLite
 
-##run
+## Run
 
 ```shell
 go test ./...
@@ -76,7 +76,7 @@ go run .
 
 ```
 
-### api routes (with sample data)
+### API routes (with sample data)
 
 ```shell
 
