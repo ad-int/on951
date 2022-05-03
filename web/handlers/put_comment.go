@@ -8,6 +8,7 @@ import (
 	dbStructure "on951/database/structure"
 	"on951/image_links_parser"
 	"on951/models"
+	"on951/strings_manipulator"
 	"on951/web"
 	"strconv"
 	"strings"
@@ -55,7 +56,7 @@ func PutComment(ctx *gin.Context) {
 
 	comment.UserId = authorizedUser.Id
 	comment.ArticleId = uint(articleId)
-	comment.Content = commentBodyStr
+	comment.Content = strings_manipulator.StripTags(commentBodyStr)
 	created := application.GetApplication().GetArticlesRepo().PutComment(&comment)
 	if !created {
 		web.WriteMessage(ctx, http.StatusTooEarly, "failed to insert your comment")
