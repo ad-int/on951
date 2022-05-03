@@ -10,7 +10,7 @@ import (
 
 func GenerateUser(name string, password string, cost int) error {
 
-	log.Println("cost", cost)
+	log.Println("BCRYPT_HASH_GENERATION_COST", cost)
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), cost)
 	if err != nil {
 		return errors.New("unable to generate token")
