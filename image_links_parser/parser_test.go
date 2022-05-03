@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"io/ioutil"
 	"on951/application"
+	"on951/randomizer"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -106,4 +107,23 @@ func (suite *imageLinksParserTestSuite) TestProcess() {
 
 	}
 
+}
+func (suite *imageLinksParserTestSuite) TestHeavyProcess() {
+
+	d, _ := ioutil.TempDir(os.TempDir(), "images-*")
+	urlPrefix := "images"
+	var parsedContent, content, randomText, img string
+	for i := 0; i < 1024; i++ {
+		for _, mimeType := range []string{"image/gif", "image/png", "image/jpeg"} {
+			mimeType, img, _ = randomizer.GetRandomBase64Image("image/png", 10, 10)
+			randomText = randomizer.GetRandomString(16, 2)
+			content += randomText + ` <img src="data:` + mimeType + `;base64,` + img + `"/>`
+			fName, _ := getImageFileName(mimeType, "base64", img)
+			parsedContent += randomText +
+				` <img src="` + string(os.PathSeparator) + `images` + string(os.PathSeparator) + fName + `" />`
+		}
+	}
+	parsedText, success := Process(content, d, urlPrefix)
+	suite.True(success)
+	suite.Equal(parsedContent, parsedText)
 }
