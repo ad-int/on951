@@ -59,8 +59,7 @@ func validateImage(mimeType string, encoding string, encodedImage string) (bool,
 	parsedMimeType, _, _ := mime.ParseMediaType(mimeType)
 
 	if !strings.Contains(parsedMimeType, "image/") {
-		log.Printf("Not an image mime type: %v\n", mimeType)
-		return false, "", nil
+		return false, "", errors.New(fmt.Sprintf("Not an image mime type: %v\n", mimeType))
 	}
 	var err error
 	var extensions []string
@@ -70,32 +69,31 @@ func validateImage(mimeType string, encoding string, encodedImage string) (bool,
 		return false, "", errors.New(fmt.Sprintf("No extension for %v\n", mimeType))
 	}
 
-	decodeImage := decodeContent(encoding, encodedImage)
+	decodeImage, _ := decodeContent(encoding, encodedImage)
 	switch mimeType {
 	case "image/png":
 		_, err = png.Decode(bytes.NewReader(decodeImage))
 		if err != nil {
-			log.Println(err)
-			return false, "", nil
+			return false, "", err
 		}
 		break
 	case "image/jpeg":
 		_, err = jpeg.Decode(bytes.NewReader(decodeImage))
 		extensions[0] = ".jpg" // overwrite strange extensions such as '.jfif' or '.jpe'
 		if err != nil {
-			return false, "", nil
+			return false, "", err
 		}
 		break
 	case "image/gif":
 		_, err = gif.Decode(bytes.NewReader(decodeImage))
 		if err != nil {
-			return false, "", nil
+			return false, "", err
 		}
 		break
 	}
 	return true, extensions[0], nil
 }
-func decodeContent(encoding string, encodedContent string) []byte {
+func decodeContent(encoding string, encodedContent string) ([]byte, error) {
 
 	var decodedContent []byte
 	var err error
@@ -103,32 +101,35 @@ func decodeContent(encoding string, encodedContent string) []byte {
 	case "base64":
 		decodedContent, err = base64.StdEncoding.DecodeString(encodedContent)
 		if err != nil {
-			log.Printf("Cannot decode image\n")
-			return nil
+			return nil, errors.New(fmt.Sprintf("Cannot decode image\n"))
 		}
 		break
 	case "text":
 		decodedContent = []byte(encodedContent)
 		break
 	default:
-		log.Printf("Unkown encoding %v\n", encoding)
-		return nil
+		return nil, errors.New(fmt.Sprintf("Unkown encoding %v\n", encoding))
 	}
 
-	return decodedContent
+	return decodedContent, nil
 }
 func saveImage(imagePath string, mimeType string, encoding string, encodedImage string) bool {
-
-	decodedImage := decodeContent(encoding, encodedImage)
-
-	if fi, statErr := os.Stat(imagePath); statErr == nil {
-		log.Println(imagePath, statErr, fi)
-		return true
-	}
-	err := ioutil.WriteFile(imagePath, decodedImage, fs.ModePerm)
+	var err error
+	decodedImage, err := decodeContent(encoding, encodedImage)
 	if err != nil {
 		log.Println(err)
 		return false
+	}
+	if _, statErr := os.Stat(imagePath); statErr == nil {
+		log.Println(imagePath, "already exists")
+		return true
+	}
+	err = ioutil.WriteFile(imagePath, decodedImage, fs.ModePerm)
+	if err != nil {
+		log.Println(err)
+		return false
+	} else {
+		log.Println("writing", imagePath)
 	}
 	return true
 }

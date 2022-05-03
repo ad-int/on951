@@ -45,10 +45,10 @@ func (suite *imageLinksParserTestSuite) TestSaveImage() {
 		isValid := false
 		tempDir, err := ioutil.TempDir(os.TempDir(), "*")
 		suite.Nil(err, "creating temp images dir")
-		if testCase.valid {
-			isValid = saveImage(filepath.Join(tempDir, testCase.fileName+testCase.extension), testCase.mimyType, testCase.encoding, testCase.encodedImage)
-			isValid = saveImage(filepath.Join(tempDir, testCase.fileName+testCase.extension), testCase.mimyType, testCase.encoding, testCase.encodedImage)
-		}
+
+		isValid = saveImage(filepath.Join(tempDir, testCase.fileName+testCase.extension), testCase.mimyType, testCase.encoding, testCase.encodedImage)
+		isValid = saveImage(filepath.Join(tempDir, testCase.fileName+testCase.extension), testCase.mimyType, testCase.encoding, testCase.encodedImage)
+
 		suite.Equal(testCase.valid, isValid)
 	}
 }
@@ -91,7 +91,8 @@ func (suite *imageLinksParserTestSuite) TestUpdateImageLinks() {
 
 func (suite *imageLinksParserTestSuite) TestDecodeContent() {
 	for _, testCase := range testDecodeContentData {
-		suite.Equal(testCase.decodedContent, decodeContent(testCase.encoding, testCase.content))
+		decodedContent, _ := decodeContent(testCase.encoding, testCase.content)
+		suite.Equal(testCase.decodedContent, decodedContent)
 	}
 }
 func (suite *imageLinksParserTestSuite) TestProcess() {
