@@ -42,7 +42,7 @@ func grabAllValidImages(text string, imagesDir string) map[string]string {
 		go func(match []string) {
 			filename, isValid := getImageFileName(match[1], match[2], match[3])
 			if isValid {
-				if saveImage(filepath.Join(imagesDir, filename), match[1], match[2], match[3]) {
+				if saved, _ := saveImage(filepath.Join(imagesDir, filename), match[1], match[2], match[3]); saved {
 					mx.Lock()
 					foundImages[filename] = match[0]
 					mx.Unlock()
@@ -113,25 +113,21 @@ func decodeContent(encoding string, encodedContent string) ([]byte, error) {
 
 	return decodedContent, nil
 }
-func saveImage(imagePath string, mimeType string, encoding string, encodedImage string) bool {
+func saveImage(imagePath string, mimeType string, encoding string, encodedImage string) (bool, error) {
 	var err error
 	decodedImage, err := decodeContent(encoding, encodedImage)
 	if err != nil {
-		log.Println(err)
-		return false
+		return false, err
 	}
 	if _, statErr := os.Stat(imagePath); statErr == nil {
 		log.Println(imagePath, "already exists")
-		return true
+		return true, errors.New(fmt.Sprintln(imagePath, "already exists"))
 	}
 	err = ioutil.WriteFile(imagePath, decodedImage, fs.ModePerm)
 	if err != nil {
-		log.Println(err)
-		return false
-	} else {
-		log.Println("writing", imagePath)
+		return false, err
 	}
-	return true
+	return true, nil
 }
 
 func updateImageLinks(text string, links map[string]string, urlPrefix string) string {
@@ -143,7 +139,6 @@ func updateImageLinks(text string, links map[string]string, urlPrefix string) st
 }
 
 func Process(text string, imagesDir string, urlPrefix string) (string, bool) {
-	log.Println(imagesDir)
 	if len(imagesDir) == 0 {
 		return text, false
 	}
