@@ -47,8 +47,7 @@ May code be with you!
 
 # application
 
-
-##.env file example
+## .env file example
 
 ```text
 DSN="test.db"
@@ -57,6 +56,7 @@ ENV="release"
 HOST="localhost:8085"
 
 ```
+
 if `ENV` is not set then on application start: 
 * 20 test articles are inserted into DB
 * test user with username `user1` and password `password1` is created
