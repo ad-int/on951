@@ -26,7 +26,7 @@ var DefinedRoutes = map[string]router.TRoutesList{
 			Group:       "/",
 			Middlewares: []gin.HandlerFunc{middleware.ApiAuthCheck},
 		},
-		"comments": {
+		"comments/:article_id": {
 			Name:        "List comments",
 			Handler:     handlers.GetComments,
 			Group:       "/",
