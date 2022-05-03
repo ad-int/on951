@@ -61,7 +61,7 @@ func (suite *randomizerTestSuite) TestGetBase64Image() {
 	var mimeType, img string
 	var err error
 	for _, testCase := range suite.testCases {
-		mimeType, img, err = randomBase64Image(testCase.mimeType, testCase.width, testCase.height)
+		mimeType, img, err = GetRandomBase64Image(testCase.mimeType, testCase.width, testCase.height)
 		suite.T().Log("generated image", mimeType, img)
 		if testCase.triggersError {
 			suite.Empty(img, "encoded image")

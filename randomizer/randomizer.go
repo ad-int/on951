@@ -35,7 +35,7 @@ func GetRandomString(length int, size int) string {
 	return strings.Join(randomStr, "")
 }
 
-func randomBase64Image(mimeType string, width int, height int) (string, string, error) {
+func GetRandomBase64Image(mimeType string, width int, height int) (string, string, error) {
 	var err error
 	rand.Seed(time.Now().UnixNano())
 	r := image.Rectangle{Min: image.Pt(0, 0), Max: image.Pt(width, height)}
