@@ -18,7 +18,11 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 )
+
+var mx sync.Mutex
+var wg sync.WaitGroup
 
 func getImageFileName(mimeType string, encoding string, encodedImage string) (string, bool) {
 	isValid, extension, _ := validateImage(mimeType, encoding, encodedImage)
@@ -32,16 +36,22 @@ func getImageFileName(mimeType string, encoding string, encodedImage string) (st
 func grabAllValidImages(text string, imagesDir string) map[string]string {
 	imgTagRegexp, _ := regexp.Compile(`(?U)<img src="data:([\w/]+);([^"]+),([^"]+)".*>`)
 	var foundImages = make(map[string]string)
-	for _, match := range imgTagRegexp.FindAllStringSubmatch(text, -1) {
-
-		filename, isValid := getImageFileName(match[1], match[2], match[3])
-		if isValid {
-			if saveImage(filepath.Join(imagesDir, filename), match[1], match[2], match[3]) {
-				foundImages[filename] = match[0]
+	allMatches := imgTagRegexp.FindAllStringSubmatch(text, -1)
+	wg.Add(len(allMatches))
+	for _, match := range allMatches {
+		go func(match []string) {
+			filename, isValid := getImageFileName(match[1], match[2], match[3])
+			if isValid {
+				if saveImage(filepath.Join(imagesDir, filename), match[1], match[2], match[3]) {
+					mx.Lock()
+					foundImages[filename] = match[0]
+					mx.Unlock()
+				}
 			}
-		}
-
+			wg.Done()
+		}(match)
 	}
+	wg.Wait()
 	return foundImages
 }
 
