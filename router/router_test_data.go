@@ -12,6 +12,7 @@ var testRouterData = []struct {
 	{
 		config: map[string]string{
 			"DSN":                    "",
+			"ENV":                    "release",
 			"SECRET":                 "213243fdessf!!!!",
 			"ISSUER":                 "localhost",
 			"AUDIENCE":               "general",
@@ -49,6 +50,7 @@ var testRouterData = []struct {
 		config: map[string]string{
 			"DSN":                    "",
 			"SECRET":                 "213243fdessf!!!!",
+			"ENV":                    "",
 			"ISSUER":                 "localhost",
 			"AUDIENCE":               "general",
 			"TRUSTED_PROXIES":        "faijop;l",

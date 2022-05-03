@@ -115,9 +115,9 @@ func (app *TApplication) Init(routes *map[string]router.TRoutesList) error {
 	if len(app.GetImagesDir()) < 1 {
 		panic(errors.New(MsgCannotReadImagesDirectory))
 	}
-	log.Println(app.GetImagesDir())
 
 	err := app.router.Configure(
+		app.GetConfigValue("ENV"),
 		strings.Fields(app.GetConfigValue("TRUSTED_PROXIES")),
 		strings.Fields(app.GetConfigValue("CORS_ALLOWED_HEADERS")),
 		app.GetConfigValue("CORS_ALLOW_ALL_ORIGINS") == "true",

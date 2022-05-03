@@ -12,6 +12,7 @@ import (
 	"image/png"
 	"io/fs"
 	"io/ioutil"
+	"log"
 	"mime"
 	"os"
 	"path/filepath"
@@ -24,7 +25,10 @@ var mx sync.Mutex
 var wg sync.WaitGroup
 
 func getImageFileName(mimeType string, encoding string, encodedImage string) (string, bool) {
-	isValid, extension, _ := validateImage(mimeType, encoding, encodedImage)
+	isValid, extension, e := validateImage(mimeType, encoding, encodedImage)
+	if e != nil {
+		log.Println(e)
+	}
 	if isValid {
 		imageFileNamePrefix := md5.Sum([]byte(mimeType + encoding + encodedImage))
 		return hex.EncodeToString(imageFileNamePrefix[:]) + extension, true

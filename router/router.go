@@ -19,7 +19,10 @@ type TRouteDescription struct {
 	Middlewares []gin.HandlerFunc
 }
 
-func (appRouter *TAppRouter) Configure(trustedProxies []string, allowedHeaders []string, allowAllOrigins bool) error {
+func (appRouter *TAppRouter) Configure(env string, trustedProxies []string, allowedHeaders []string, allowAllOrigins bool) error {
+	if env != "" {
+		gin.SetMode(env)
+	}
 	appRouter.engine = gin.Default()
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowHeaders = allowedHeaders

@@ -3,6 +3,7 @@ package application
 import (
 	"encoding/json"
 	"errors"
+	"github.com/gin-gonic/gin"
 	"github.com/pascaldekloe/jwt"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -29,7 +30,7 @@ func (rf *FakeRouter) Run() error {
 	return args.Error(0)
 }
 
-func (rf *FakeRouter) Configure(trustedProxies []string, allowedHeaders []string, allowAllOrigins bool) error {
+func (rf *FakeRouter) Configure(env string, trustedProxies []string, allowedHeaders []string, allowAllOrigins bool) error {
 	args := rf.Called()
 	return args.Error(0)
 }
@@ -304,10 +305,11 @@ func (suite *applicationTestSuite) TestApplicationBootstrap() {
 		app := &TApplicationMock{db: dbMock, ImagesDir: imagesTmpDir}
 
 		app.On("ReadEnvFile").Return(len(app.config) > 0, testCase.config)
-		app.On("GetConfigValue", "DSN").Return("")
-		app.On("GetConfigValue", "TRUSTED_PROXIES").Return(testCase.config["TRUSTED_PROXIES"])
-		app.On("GetConfigValue", "CORS_ALLOWED_HEADERS").Return(testCase.config["CORS_ALLOWED_HEADERS"])
-		app.On("GetConfigValue", "CORS_ALLOW_ALL_ORIGINS").Return(testCase.config["CORS_ALLOW_ALL_ORIGINS"])
+		if testCase.config != nil {
+			for key, value := range testCase.config {
+				app.On("GetConfigValue", key).Return(value)
+			}
+		}
 		app.On("GetImagesDir").Return(testCase.imagesDir)
 		app.On("Init", &testCase.routes).Return(nil)
 		app.On("InitDb").Return(true)
@@ -332,12 +334,21 @@ func (suite *applicationTestSuite) TestApplicationBootstrap() {
 			})
 			continue
 		} else {
-			appRepo.Bootstrap(&testCase.routes, func() { testFuncInsideBootstrap = "test" })
+			appRepo.Bootstrap(&testCase.routes, func() {
+				if app.GetConfigValue("ENV") == gin.ReleaseMode {
+					return
+				}
+				testFuncInsideBootstrap = "test"
+			})
 
 		}
 
 		routesFound := 0
-		suite.Equal("test", testFuncInsideBootstrap)
+		if app.GetConfigValue("ENV") == gin.ReleaseMode {
+			suite.Empty(testFuncInsideBootstrap)
+		} else {
+			suite.Equal("test", testFuncInsideBootstrap)
+		}
 		for method, routeDescription := range testCase.routes {
 			for path, _ := range *routeDescription {
 				for _, h := range appRepo.GetApplication().GetRouter().GetEngine().Routes() {

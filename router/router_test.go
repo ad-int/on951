@@ -20,6 +20,7 @@ func (suite *routerTestSuite) TestInitRoutes() {
 		router := &TAppRouter{}
 
 		configurationError := router.Configure(
+			testCase.config["ENV"],
 			strings.Fields(testCase.config["TRUSTED_PROXIES"]),
 			strings.Fields(testCase.config["CORS_ALLOWED_HEADERS"]),
 			testCase.config["CORS_ALLOW_ALL_ORIGINS"] == "true",
@@ -50,6 +51,7 @@ func (suite *routerTestSuite) TestGetEngine() {
 	for _, testCase := range testRouterData {
 		router := &TAppRouter{}
 		configurationError := router.Configure(
+			testCase.config["ENV"],
 			strings.Fields(testCase.config["TRUSTED_PROXIES"]),
 			strings.Fields(testCase.config["CORS_ALLOWED_HEADERS"]),
 			testCase.config["CORS_ALLOW_ALL_ORIGINS"] == "true",

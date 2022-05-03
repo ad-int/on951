@@ -49,6 +49,7 @@ func (app *TApplicationMock) Init(routes *map[string]router.TRoutesList) error {
 	}
 
 	err := app.router.Configure(
+		app.GetConfigValue("ENV"),
 		strings.Fields(app.GetConfigValue("TRUSTED_PROXIES")),
 		strings.Fields(app.GetConfigValue("CORS_ALLOWED_HEADERS")),
 		app.GetConfigValue("CORS_ALLOW_ALL_ORIGINS") == "true",

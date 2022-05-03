@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"on951/application"
 	"on951/data_generator"
 	"strconv"
@@ -9,6 +10,9 @@ import (
 func main() {
 	app := application.GetApplicationRepository()
 	app.Bootstrap(&DefinedRoutes, func() {
+		if application.GetApplication().GetConfigValue("ENV") == gin.ReleaseMode {
+			return
+		}
 		for t := 0; t < 20; t++ { // Generating random articles
 			data_generator.GenerateArticle()
 		}

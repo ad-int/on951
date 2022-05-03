@@ -14,6 +14,7 @@ var testApplicationData = []struct {
 	{
 		config: map[string]string{
 			"DSN":                    "",
+			"ENV":                    "release",
 			"SECRET":                 "213243fdessf!!!!",
 			"ISSUER":                 "localhost",
 			"AUDIENCE":               "general",
@@ -46,7 +47,40 @@ var testApplicationData = []struct {
 		config: map[string]string{
 			"DSN":                    "",
 			"SECRET":                 "213243fdessf!!!!",
+			"ENV":                    "",
 			"ISSUER":                 "localhost",
+			"AUDIENCE":               "general",
+			"TRUSTED_PROXIES":        "127.0.0.1",
+			"CORS_ALLOWED_HEADERS":   "*",
+			"CORS_ALLOW_ALL_ORIGINS": "true",
+		},
+		imagesDir:          "fake-images-dir",
+		configurationFails: false,
+		routes: map[string]router.TRoutesList{
+			"GET": {
+				"health-check": {
+					Name: "Health Check",
+					Handler: func(context *gin.Context) {
+
+					},
+				},
+			},
+			"PUT": {
+				"comment/:article_id": {
+					Name: "Post a comment",
+					Handler: func(context *gin.Context) {
+
+					},
+				},
+			},
+		},
+	},
+	{
+		config: map[string]string{
+			"DSN":                    "",
+			"SECRET":                 "213243fdessf!!!!",
+			"ISSUER":                 "localhost",
+			"ENV":                    "",
 			"AUDIENCE":               "general",
 			"TRUSTED_PROXIES":        "127.0.0.1",
 			"CORS_ALLOWED_HEADERS":   "*",
@@ -79,6 +113,7 @@ var testApplicationData = []struct {
 			"SECRET":                 "213243fdessf!!!!",
 			"ISSUER":                 "localhost",
 			"AUDIENCE":               "general",
+			"ENV":                    "",
 			"TRUSTED_PROXIES":        "fail",
 			"CORS_ALLOWED_HEADERS":   "*",
 			"CORS_ALLOW_ALL_ORIGINS": "true",
