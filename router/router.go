@@ -27,6 +27,7 @@ func (appRouter *TAppRouter) Configure(env string, trustedProxies []string, allo
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowHeaders = allowedHeaders
 	corsConfig.AllowAllOrigins = allowAllOrigins
+	appRouter.engine.Use(cors.New(corsConfig))
 	return appRouter.engine.SetTrustedProxies(trustedProxies)
 }
 

@@ -54,6 +54,8 @@ DSN="test.db"
 SECRET="SECRET-FOR-TOKEN-GENERATION"
 ENV="release"
 HOST="localhost:8085"
+CORS_ALLOWED_HEADERS="*"
+CORS_ALLOW_ALL_ORIGINS="true"
 
 ```
 
