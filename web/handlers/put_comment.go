@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"on951/application"
 	dbStructure "on951/database/structure"
@@ -44,9 +43,14 @@ func PutComment(ctx *gin.Context) {
 		return
 	}
 
-	commentBodyStr := string(commentBody)
+	commentBodyStr := strings.TrimSpace(string(commentBody))
+
+	if commentBodyStr == "" {
+		web.WriteBadRequestError(ctx, "Comment is empty")
+		return
+	}
+
 	var areImageLinksProcessed bool
-	log.Println("comment", commentBodyStr)
 	commentBodyStr, areImageLinksProcessed = image_links_parser.Process(commentBodyStr, application.GetApplication().GetImagesDir(), application.ImagesDirectory)
 	if !areImageLinksProcessed {
 		web.Write(ctx, http.StatusInsufficientStorage, models.Response{

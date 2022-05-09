@@ -80,7 +80,28 @@ func (suite *handlersTestSuite) getNewAuthToken() string {
 	_ = json.Unmarshal(aRecorder.Body.Bytes(), &authToken)
 	return authToken.GetAuthorizationString()
 }
+func (suite *handlersTestSuite) prepareContext(app *application.TApplicationMock, testCase TestCase) {
+	suite.context.Params = testCase.params
 
+	var body io.ReadCloser
+	if testCase.incorrectBody {
+		body = &MalformedBody{}
+	} else {
+		body = ioutil.NopCloser(bytes.NewReader([]byte(testCase.body)))
+	}
+	suite.context.Request = httptest.NewRequest(testCase.method, testCase.requestURI, body)
+	if testCase.requiresLogin {
+
+		token := suite.getNewAuthToken()
+
+		app.On("GetConfigValue", "AUDIENCE").Return("general")
+		app.On("GetConfigValue", "ISSUER").Return("localhost")
+		app.On("GetConfigValue", "SECRET").Return("234")
+
+		suite.context.Request.Header = http.Header{}
+		suite.context.Request.Header.Set("Authorization", token)
+	}
+}
 func (suite *handlersTestSuite) prepare(testCase TestCase, handlerFunc ...func(ctx *gin.Context)) {
 
 	suite.recorder = httptest.NewRecorder()
@@ -136,29 +157,11 @@ func (suite *handlersTestSuite) prepare(testCase TestCase, handlerFunc ...func(c
 
 	application.SetApplication(app)
 	suite.IsType(&application.TApplicationMock{}, application.GetApplication())
-	suite.context.Params = testCase.params
-
-	var body io.ReadCloser
-	if testCase.incorrectBody {
-		body = &MalformedBody{}
-	} else {
-		body = ioutil.NopCloser(bytes.NewReader([]byte(testCase.body)))
-	}
-	suite.context.Request = httptest.NewRequest(testCase.method, testCase.requestURI, body)
-	if testCase.requiresLogin {
-
-		token := suite.getNewAuthToken()
-
-		app.On("GetConfigValue", "AUDIENCE").Return("general")
-		app.On("GetConfigValue", "ISSUER").Return("localhost")
-		app.On("GetConfigValue", "SECRET").Return("234")
-
-		suite.context.Request.Header = http.Header{}
-		suite.context.Request.Header.Set("Authorization", token)
-	}
 	for _, hFunc := range handlerFunc {
+		suite.prepareContext(app, testCase)
 		hFunc(suite.context)
 		if testCase.runHandlerTwice {
+			suite.prepareContext(app, testCase)
 			suite.recorder.Body.Truncate(0)
 			hFunc(suite.context)
 		}
